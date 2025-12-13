@@ -56,7 +56,7 @@ postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?sslmode=require
 
 ```
 Name: DATABASE_URL
-Value: postgresql://neondb_owner:password@ep-wild-grass-agsojd03-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require
+Value: postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?sslmode=require
 ```
 
 **❌ خطأ - لا تفعل هذا:**
@@ -68,8 +68,10 @@ Value: postgresql://...    (مع مسافات في النهاية)
 
 **✅ صحيح:**
 ```
-Value: postgresql://neondb_owner:password@ep-wild-grass-agsojd03-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require
+Value: postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?sslmode=require
 ```
+
+**⚠️ مهم:** استبدل `user`, `password`, `ep-xxxxx`, `region`, و `dbname` بقيمك الفعلية من Neon Console.
 
 ### 4. بعد إضافة/تحديث DATABASE_URL
 

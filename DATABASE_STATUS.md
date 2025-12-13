@@ -5,9 +5,9 @@
 Your Neon PostgreSQL database has been successfully configured and initialized.
 
 ### Connection Details
-- **Database:** neondb
-- **Host:** ep-wild-grass-agsojd03-pooler.c-2.eu-central-1.aws.neon.tech
-- **Region:** EU Central 1 (Frankfurt)
+- **Database:** [Your database name]
+- **Host:** [Your Neon host]
+- **Region:** [Your region]
 - **Connection Pooling:** Enabled (pooler)
 
 ### Database Schema
@@ -59,10 +59,13 @@ npx prisma migrate reset
 ### Connection String
 Your connection string is stored in `.env`:
 ```
-DATABASE_URL="postgresql://neondb_owner:npg_qT9EOb6cZunM@ep-wild-grass-agsojd03-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+DATABASE_URL="postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?sslmode=require"
 ```
 
-⚠️ **Security Note:** Never commit your `.env` file to version control. It's already in `.gitignore`.
+⚠️ **Security Note:** 
+- Never commit your `.env` file to version control. It's already in `.gitignore`.
+- Never share your actual connection string publicly.
+- Always use environment variables for sensitive data.
 
 ### Troubleshooting
 
