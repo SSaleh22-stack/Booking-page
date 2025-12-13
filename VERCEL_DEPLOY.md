@@ -38,6 +38,7 @@ DATABASE_URL=postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?ssl
 ```
 - استخدم نفس connection string من Neon
 - تأكد من إضافة `?sslmode=require` في النهاية
+- **للمزيد من التفاصيل:** راجع `VERCEL_DATABASE_SETUP.md`
 
 #### كلمة مرور الأدمن (Admin Password)
 ```
