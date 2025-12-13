@@ -133,24 +133,33 @@ export default function RowSelection({ slot, selectedStartTime, selectedDuration
         )}
       </div>
 
-      {/* Selected rows summary */}
-      {selectedRows.length > 0 && (
-        <div className="mb-6">
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl border border-blue-200">
-            <p className="text-sm text-blue-900 font-semibold mb-1">
-              الصفوف المحددة:
-            </p>
-            <p className="text-lg font-bold text-blue-900">
-              {selectedRows.sort((a, b) => a - b).join(', ')}
-            </p>
-            {selectedStartTime && selectedDuration && (
-              <p className="text-xs text-blue-700 mt-2">
-                الوقت: {selectedStartTime} • المدة: {selectedDuration} دقيقة
+      {/* Selected rows summary - always show */}
+      <div className="mb-6">
+        <div className="p-4 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl border border-blue-200">
+          <p className="text-sm text-blue-900 font-semibold mb-1">
+            الصفوف المحددة:
+          </p>
+          {selectedRows.length > 0 ? (
+            <>
+              <p className="text-base sm:text-lg font-bold text-blue-900 break-words">
+                {selectedRows.sort((a, b) => a - b).join(', ')}
               </p>
-            )}
-          </div>
+              <p className="text-sm sm:text-base text-blue-700 mt-2 font-medium">
+                عدد الصفوف: {selectedRows.length} {selectedRows.length === 1 ? 'صف' : 'صفوف'}
+              </p>
+            </>
+          ) : (
+            <p className="text-base sm:text-lg font-semibold text-gray-500">
+              لم يتم اختيار صفوف بعد
+            </p>
+          )}
+          {selectedStartTime && selectedDuration && (
+            <p className="text-xs sm:text-sm text-blue-700 mt-2">
+              الوقت: {selectedStartTime} • المدة: {selectedDuration} دقيقة
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
       <div className="flex gap-4">
         <button

@@ -72,7 +72,7 @@ export default function BookingCalendar({ onDateSelect }: BookingCalendarProps) 
       <div className="flex items-center justify-between mb-4 sm:mb-6 bg-gray-50 p-3 sm:p-4 rounded-lg">
         <button
           onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white rounded-lg hover:bg-gray-100 border border-gray-200 transition-colors font-medium text-sm sm:text-base touch-target"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white rounded-lg hover:bg-gray-100 border border-gray-200 transition-colors font-medium text-sm sm:text-base text-black touch-target"
         >
           السابق
         </button>
@@ -81,7 +81,7 @@ export default function BookingCalendar({ onDateSelect }: BookingCalendarProps) 
         </h3>
         <button
           onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white rounded-lg hover:bg-gray-100 border border-gray-200 transition-colors font-medium text-sm sm:text-base touch-target"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white rounded-lg hover:bg-gray-100 border border-gray-200 transition-colors font-medium text-sm sm:text-base text-black touch-target"
         >
           التالي
         </button>

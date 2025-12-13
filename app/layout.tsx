@@ -58,12 +58,12 @@ export default function RootLayout({
               {/* Left side - Navigation */}
               <div className="flex items-center gap-3 sm:gap-4">
                 <Link 
-                  href="/" 
-                  className="bg-white text-blue-900 hover:bg-blue-50 font-bold transition-all text-xs sm:text-sm touch-target px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl shadow-lg hover:shadow-xl border-2 border-blue-200 hover:border-blue-300 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap"
+                  href="/book" 
+                  className="bg-white text-blue-900 hover:bg-blue-50 font-bold transition-all text-sm sm:text-sm touch-target px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl shadow-lg hover:shadow-xl border-2 border-blue-200 hover:border-blue-300 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap"
                 >
                   <span className="text-base sm:text-lg">📅</span>
                   <span className="hidden sm:inline">احجز قاعة امتحان</span>
-                  <span className="sm:hidden">احجز</span>
+                  <span className="sm:hidden text-base">احجز</span>
                 </Link>
                 <Link 
                   href="/search" 
