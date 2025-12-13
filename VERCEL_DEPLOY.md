@@ -32,13 +32,15 @@ vercel --prod
 1. اذهب إلى **Project Settings** → **Environment Variables**
 2. أضف المتغيرات التالية:
 
-#### قاعدة البيانات (Database)
+#### قاعدة البيانات (Database) ⚠️ **مطلوب قبل البناء**
 ```
 DATABASE_URL=postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?sslmode=require
 ```
+- **مهم جداً:** يجب إضافة `DATABASE_URL` قبل أول بناء، وإلا سيفشل البناء
 - استخدم نفس connection string من Neon
 - تأكد من إضافة `?sslmode=require` في النهاية
 - **للمزيد من التفاصيل:** راجع `VERCEL_DATABASE_SETUP.md`
+- **إذا واجهت خطأ:** راجع `VERCEL_BUILD_FIX.md`
 
 #### كلمة مرور الأدمن (Admin Password)
 ```
