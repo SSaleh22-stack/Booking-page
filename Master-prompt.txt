@@ -1,0 +1,374 @@
+You are an expert full-stack engineer (TypeScript, Next.js 14 App Router, PostgreSQL/Prisma, Tailwind CSS, Node.js) working inside Cursor.
+
+Your task: build a complete, production-ready web app similar in spirit to “youcanbook.me”, but specialized for **booking exam rooms with rows** in a university. The target timezone is **Asia/Riyadh**.
+
+There are two roles:
+
+1. **Employees (Admin side / Back end UI)**  
+   - Define **exam slots**: date range, time, duration (1 hour, 2 hours, etc.), exam place, row range, and optional seats per row.  
+   - Example:  
+     - Place: “Hall A”  
+     - Date range: from 2026-01-10 to 2026-01-20  
+     - Start time: 09:00  
+     - Duration: 60 minutes (1 hour) or 120 minutes (2 hours)  
+     - Row range: 1 to 20  
+     - Optional default seats per row: 30  
+   - The system should compute `endTime = startTime + durationMinutes` when needed (for display, ICS, PDF).  
+   - They can:  
+     - Create single or repeated exam slots (e.g., every day in a date range at given time and duration).  
+     - View all existing slots in a table (future slots first).  
+     - See basic stats for each slot (how many rows booked, remaining rows).  
+     - Deactivate or delete slots.
+
+2. **Doctors (Front end / public UI)**  
+   - Go to a public booking page (no login).  
+   - **They choose the exam date from a calendar, not a list.**  
+   - Flow:  
+     - Step 1: Use a **calendar view** to pick a date.  
+       - Only days that have at least one active exam slot should be clickable/highlighted.  
+     - Step 2: After selecting a date, show a **list of available time slots for that day**, each with:  
+       - Start time (e.g., 09:00)  
+       - Automatically associated duration (e.g., “1 hour”, “2 hours”) coming from the backend.  
+       - Place and remaining row capacity.  
+       - The doctor chooses a specific time slot; by choosing that slot, they are effectively choosing both time and duration (1 hr or 2 hr).  
+     - Step 3: Choose one or more rows from the available row range for that slot.  
+       - Rows already booked by other doctors must be disabled or visibly marked as taken.  
+     - Step 4: Enter their details: **first name, last name, email, phone number**.  
+     - Step 5: Confirm the booking and see a confirmation screen with a summary.  
+
+   - After confirming, they receive an **automatic confirmation email** with booking details and links to:  
+     - Edit/reschedule the booking (change date, time slot, and rows, subject to availability).  
+     - Cancel the booking.  
+     - Add the booking to their calendar (.ics file).  
+     - Download a simple PDF summary of the booking (for printing or saving in their photos/files).  
+
+   - They can later:  
+     - Open a “Manage booking” link from the email (no login, uses a secure token).  
+     - Change the booked exam date and time (by using the same **calendar + time slot** flow), and rows.  
+     - Cancel the booking entirely.  
+     - After an update or cancel, they should receive an updated email.
+
+---
+
+### Tech stack & architecture
+
+Use the following tech stack unless there is a strong reason not to:
+
+- **Framework:** Next.js 14 with **App Router** and **TypeScript**.  
+- **Styling:** Tailwind CSS.  
+- **Database:** PostgreSQL (OK to start with SQLite in dev). Use **Prisma ORM** for schema and migrations.  
+- **Email:** Nodemailer with an SMTP provider (development can use Mailtrap or any test SMTP).  
+- **Date/time utilities:** date-fns (or similar) to handle local time and formatting.  
+- **Calendar export:** Use a small library like `ics` or `ical-generator`, or a minimal helper, to generate `.ics` files.  
+- **PDF export:** Use a JS PDF library (e.g., `pdf-lib` or `jspdf`) to generate a simple one-page PDF booking summary.
+
+Assume Node 20+ and a standard Next.js project created via `create-next-app` (with App Router).
+
+---
+
+### Data model (Prisma schema – high level)
+
+Define a clean data model that supports all features, including secure edit/cancel via token. At minimum include these entities:
+
+1. **ExamSlot**  
+   - `id` (string/UUID)  
+   - `date` (date)  
+   - `startTime` (time)  
+   - `durationMinutes` (int)  // e.g., 60 or 120; end time is derived = startTime + durationMinutes  
+   - `locationName` (string)  
+   - `rowStart` (int)       // e.g., 1  
+   - `rowEnd` (int)         // e.g., 20  
+   - `defaultSeatsPerRow` (int, nullable)  
+   - `isActive` (boolean, default true)  
+   - `createdAt` / `updatedAt`  
+
+2. **Booking**  
+   - `id` (string/UUID)  
+   - `examSlotId` (FK → ExamSlot)  
+   - `selectedRows` (Json)   // e.g. array of row numbers, or row→seatCount map  
+   - `firstName` (string)  
+   - `lastName` (string)  
+   - `email` (string)  
+   - `phone` (string)  
+   - `status` (enum: "CONFIRMED" | "CANCELLED")  
+   - `manageToken` (string, unique, random, used in URL for edit/cancel)  
+   - `createdAt` / `updatedAt`
+
+You can extend later if needed (e.g., for exact seat allocation).
+
+Important:  
+- Ensure that for a given **ExamSlot**, the same row cannot be double-booked by two different bookings in **CONFIRMED** status. Either enforce at application level or via constraints.  
+- Timezone: treat exam dates and times as local time in **Asia/Riyadh** and be consistent for display and calendar exports.  
+- `endTime` should be computed from `startTime + durationMinutes` whenever needed (for ICS/PDF), not manually entered.
+
+---
+
+### API design (Next.js App Router, REST-style routes)
+
+Implement API routes under `/app/api` with proper input validation and error handling.
+
+1. **Exam slots**
+
+- `POST /api/exam-slots`  
+  - Body: { date(s), startTime, durationMinutes, locationName, rowStart, rowEnd, defaultSeatsPerRow, repeatPattern? }  
+  - `durationMinutes` should support at least 60 and 120 (1 hr or 2 hr), but design to allow other values if needed.  
+  - Can support repeat generation: e.g., create one slot per day in a date range.  
+
+- `GET /api/exam-slots`  
+  - Query options: `fromDate`, `toDate`, `includeInactive`.  
+  - Returns upcoming active slots, grouped by date if useful, with aggregated info (how many rows booked, how many left).
+
+- `PATCH /api/exam-slots/:id`  
+  - Update fields, including ability to deactivate a slot.  
+
+- `DELETE /api/exam-slots/:id`  
+  - Soft delete or hard delete (your choice, document what you do).
+
+2. **Bookings**
+
+- `POST /api/bookings`  
+  - Body: { examSlotId, selectedRows, firstName, lastName, email, phone }  
+  - Validations:  
+    - The slot exists and is active.  
+    - Selected rows are within rowStart–rowEnd.  
+    - Selected rows are not already taken for that slot in another CONFIRMED booking.  
+  - On success:  
+    - Create booking with `status = CONFIRMED`.  
+    - Generate a `manageToken` (secure random string).  
+    - Send confirmation email with all details and a manage link.  
+
+- `GET /api/bookings/manage/:token`  
+  - Return booking and slot info for the manage page.
+
+- `PATCH /api/bookings/manage/:token`  
+  - Allow changing:
+    - `examSlotId` (i.e., change date + time slot chosen from the calendar + list of times),  
+    - `selectedRows`,  
+    - contact details.  
+  - Enforce same validations (slot active, rows not double-booked, etc.).  
+  - On success: send updated confirmation email and new calendar/ICS information.
+
+- `DELETE /api/bookings/manage/:token`  
+  - Mark booking as `CANCELLED`, free the rows, send cancellation email.
+
+3. **Calendar & PDF exports**
+
+- `/api/bookings/:id/ics`  
+  - Returns an `.ics` file for that booking (single VEVENT).  
+  - Use exam `date` + `startTime` + `durationMinutes` to compute start/end times.  
+  - Set the timezone to `Asia/Riyadh`.
+
+- `/api/bookings/:id/pdf`  
+  - Generates a 1-page PDF with:  
+    - University / app name  
+    - Doctor name  
+    - Exam date and time (start + end computed from durationMinutes)  
+    - Place  
+    - Rows reserved  
+    - Booking ID and QR code or plain text code (optional).
+
+---
+
+### Pages & UI (Next.js app router structure)
+
+Use clean composition and Tailwind CSS to make the site look professional, simple, and mobile-friendly. Avoid over-engineering; prioritize clarity and UX.
+
+1. **Public booking flow**
+
+- Route: `/` or `/book`  
+- Steps:
+
+  1) **Select date from calendar**  
+     - Show a calendar component (month view).  
+     - Only dates with active exam slots are clickable or highlighted.  
+     - When the user clicks a date, load the available slots for that date from the backend.
+
+  2) **Select time slot (with duration)**  
+     - After a date is chosen, show a list of time slot cards for that specific date.  
+     - Each card should display:  
+       - Start time (e.g., 09:00)  
+       - Duration (e.g., “1 hour”, “2 hours”) derived from `durationMinutes`  
+       - Location  
+       - Remaining free rows (e.g., “12 rows free”).  
+     - The doctor selects one time slot.  
+
+  3) **Select rows**  
+     - Show the row range (e.g., 1–20) as clickable buttons or chips.  
+     - Indicate which rows are already reserved (disabled or different color).  
+     - Allow multiple row selection if needed.  
+
+  4) **Enter details**  
+     - Form fields: first name, last name, email, phone.  
+     - Client-side validation.
+
+  5) **Review & confirm**  
+     - Summary card with all details: date, start time, end time (computed), duration label, place, rows.  
+     - A “Confirm booking” button that calls `POST /api/bookings`.
+
+  6) **Success page**  
+     - Clear message and booking summary.  
+     - Buttons:  
+       - “Add to Calendar (.ics)” → download ICS.  
+       - “Download PDF” → open or download PDF.  
+       - “Back to home”.
+
+2. **Manage booking page**
+
+- Route: `/manage/[token]`  
+- From this page a doctor can:  
+  - See their existing booking with all details (including computed end time).  
+  - Change the exam date via calendar, then choose a new time slot for that date (same UX as initial booking).  
+  - Change selected rows (respecting conflicts).  
+  - Update contact info.  
+  - Cancel booking.  
+- Show clear status messages (“Booking updated”, “Booking cancelled”).  
+- After actions, call corresponding API endpoints and show updated information.
+
+3. **Admin pages (employees)**
+
+- Route: `/admin` (and subroutes)  
+- Simple **password-protected** access using an environment variable (e.g., `ADMIN_PASSWORD`) to avoid building full authentication now.  
+- Features:  
+  - Form to create new slots:
+    - Date range (startDate, endDate)  
+    - Start time  
+    - **Slot duration dropdown** with at least 60 and 120 minutes options (1 hr / 2 hr), but implemented as a free integer so we can support other values later.  
+    - Place  
+    - Row range (rowStart, rowEnd)  
+    - Default seats per row (optional)  
+  - Option to create repeated slots across the specified date range.  
+  - Table of existing slots:
+    - Date, time, duration label  
+    - Place  
+    - Row range  
+    - Booked rows / total rows  
+    - Active/inactive toggle  
+    - Delete/deactivate buttons  
+
+- Optionally add filters (by date, place).
+
+---
+
+### Email behaviour
+
+- Use Nodemailer to send email immediately after:  
+  - Booking created  
+  - Booking updated  
+  - Booking cancelled  
+
+- Email content:  
+  - Greeting with doctor’s name.  
+  - Summary: date, start time, end time (computed from duration), duration label, place, rows.  
+  - Unique booking ID.  
+  - A **“Manage your booking”** link containing the `manageToken` (e.g., `/manage/[token]`).  
+  - “Add to calendar” link that either:  
+    - Points directly to the `/api/bookings/:id/ics` endpoint, or  
+    - Opens a page with calendar options.  
+
+- Use simple, clean HTML templates (no need for heavy design).  
+- In development, configure SMTP for a safe test service (e.g., Mailtrap or similar).
+
+---
+
+### Behaviour and UX guidelines
+
+- Follow a similar UX philosophy to youcanbook.me:  
+  - 24/7 self-service booking page.  
+  - Simple steps: **calendar → time slot (with duration) → rows → details → confirm**.  
+  - Easy cancellation and rescheduling.  
+  - Clear email confirmations with all info.  
+
+- The UI should be responsive and usable on mobile, tablet, and desktop.  
+- Highlight remaining capacity (e.g., “12 rows free”).  
+- Use consistent Tailwind spacing, typography, and colors.
+
+---
+
+### Development plan (VERY IMPORTANT – follow these phases)
+
+I want you to build this incrementally, with clean, well-structured code. Follow this order:
+
+**Phase 0 – Project setup**  
+- Initialize Next.js 14 App Router + TypeScript + Tailwind.  
+- Configure ESLint and basic project structure (`app/`, `lib/`, `components/`, `app/api/...`).  
+- Add basic layout with a simple header and footer.
+
+**Phase 1 – Database & Prisma**  
+- Add Prisma and configure a local database (SQLite is fine for dev).  
+- Implement the `ExamSlot` and `Booking` models (including `durationMinutes`) and run migrations.  
+- Implement a small seeding script to create a few dummy exam slots with 60 and 120 minute durations.
+
+**Phase 2 – API routes for exam slots**  
+- Implement `GET /api/exam-slots` and `POST /api/exam-slots` (support date range + durationMinutes).  
+- Then implement `PATCH` and `DELETE` for basic management.  
+- Add input validation (e.g., using Zod or a similar schema library).
+
+**Phase 3 – Admin UI**  
+- Build `/admin` pages:
+  - Simple password check (env variable) middleware.  
+  - Form to create slots, including:
+    - Date range, 
+    - Start time, 
+    - Duration dropdown (1 hr / 2 hr / custom), 
+    - Place, 
+    - Row range.  
+  - Table/list of exam slots with edit/deactivate/delete actions and a column showing “1 hr” or “2 hr” based on `durationMinutes`.
+
+**Phase 4 – Public booking flow (without email yet)**  
+- Implement `/book` multi-step UI:
+  - Calendar date selection.  
+  - Time slots list for selected date (show duration).  
+  - Row selection.  
+  - Doctor details form.  
+  - Review & confirm step.  
+- Implement `POST /api/bookings` and connect it to the UI.  
+- Show a success page after booking creation.
+
+**Phase 5 – Email sending**  
+- Integrate Nodemailer.  
+- Implement a dedicated email utility to send:
+  - Booking confirmation email on `POST /api/bookings`.  
+  - Update and cancel emails on PATCH/DELETE.  
+- Use environment variables for SMTP configuration.  
+- Add minimal HTML templates for emails.
+
+**Phase 6 – Manage booking (edit / cancel)**  
+- Implement manage endpoints using `manageToken`.  
+- Build `/manage/[token]` page:
+  - Load booking + slot info from token.  
+  - Allow changing:
+    - Date via calendar, then a time slot for that date (reusing the same “calendar + time slot list” UI components).  
+    - Rows and contact info.  
+  - Allow cancellation.  
+  - After each action, show updated info and call email functions.
+
+**Phase 7 – Calendar & PDF exports**  
+- Implement ICS generation (`/api/bookings/:id/ics`) using a helper or library, computing end time from `startTime + durationMinutes`.  
+- Ensure correct timezone (Asia/Riyadh) and event times.  
+- Implement PDF generation (`/api/bookings/:id/pdf`) using a small library, with a simple one-page layout.  
+- Add “Add to calendar” and “Download PDF” buttons to the success and manage pages.
+
+**Phase 8 – Accessorizing & polish (small sparks, no big changes)**  
+- Improve UI styling (buttons, cards, hover states).  
+- Add form validation messages and inline errors.  
+- Add loading states (spinners or skeletons).  
+- Optional:  
+  - Support Arabic/English labels (basic i18n).  
+  - Show a small timeline/calendar visualization of slots.  
+
+Throughout all phases:  
+- Keep code modular, typed, and documented.  
+- Use React server components where appropriate and client components where necessary (forms, interactive calendar & row selection).  
+- Reuse components and avoid duplication.  
+- Add comments explaining any non-trivial logic (especially around row conflict checks and date/time handling).
+
+At the end, I expect a fully working app with:
+
+- Admin UI for defining exam slots (with date, time, duration 1 hr / 2 hr, location, row range).  
+- Public booking flow for doctors using **calendar date selection + time slot list**.  
+- Email confirmations with edit/cancel links.  
+- Manage page with reschedule/cancel.  
+- ICS calendar event export (with correct duration).  
+- PDF booking summary download.  
+- Clean and responsive UI with Tailwind.
+Start from Phase 0 and move step-by-step as described.

@@ -1,0 +1,43 @@
+{
+  "name": "exam-room-booking",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && prisma migrate deploy && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "next": "^14.2.5",
+    "@prisma/client": "^5.19.1",
+    "prisma": "^5.19.1",
+    "zod": "^3.23.8",
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.0.0",
+    "nodemailer": "^6.9.15",
+    "ics": "^3.4.0",
+    "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "@types/node": "^22.5.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.1",
+    "@types/nodemailer": "^6.4.14",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.5",
+    "tsx": "^4.16.2"
+  }
+}
+

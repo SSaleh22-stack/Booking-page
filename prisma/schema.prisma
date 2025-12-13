@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ExamSlot {
+  id                String   @id @default(uuid())
+  date              DateTime
+  startTime         String   // Time window start (HH:mm format)
+  endTime           String?  // Time window end (HH:mm format) - optional for backward compatibility
+  allowedDurations  String?  // JSON array of allowed durations in minutes, e.g., [60, 120] - optional for backward compatibility
+  durationMinutes   Int?     // Legacy field - kept for backward compatibility
+  locationName      String
+  rowStart          Int
+  rowEnd            Int
+  defaultSeatsPerRow Int?
+  isActive          Boolean  @default(true)
+  dayExceptions     String?  // JSON array of day numbers to exclude (0=Sunday, 1=Monday, ..., 6=Saturday), e.g., [5,6] for Friday and Saturday
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  bookings          Booking[]
+
+  @@index([date, isActive])
+  @@index([date])
+}
+
+model Booking {
+  id                String   @id @default(uuid())
+  examSlotId        String
+  examSlot          ExamSlot @relation(fields: [examSlotId], references: [id], onDelete: Cascade)
+  bookingReference  String?  @unique // 12-character alphanumeric reference
+  bookingStartTime  String?  // The actual start time chosen by doctor (HH:mm format) - optional for backward compatibility
+  bookingDurationMinutes Int?  // The duration chosen by doctor (e.g., 60 or 120) - optional for backward compatibility
+  selectedRows      String   // JSON array of row numbers as string
+  firstName         String
+  lastName          String
+  email             String
+  phone             String
+  status            BookingStatus @default(CONFIRMED)
+  manageToken       String   @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([examSlotId, status])
+  @@index([manageToken])
+  @@index([email])
+  @@index([bookingReference])
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
