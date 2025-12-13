@@ -22,7 +22,7 @@ Error: the URL must start with the protocol `postgresql://` or `postgres://`
 
 ### مثال صحيح:
 ```
-DATABASE_URL=postgresql://neondb_owner:password@ep-xxxxx-pooler.region.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://user:password@ep-xxxxx-pooler.region.aws.neon.tech/dbname?sslmode=require
 ```
 
 ### مثال خاطئ ❌:

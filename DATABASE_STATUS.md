@@ -5,9 +5,9 @@
 Your Neon PostgreSQL database has been successfully configured and initialized.
 
 ### Connection Details
-- **Database:** [Your database name]
-- **Host:** [Your Neon host]
-- **Region:** [Your region]
+- **Database:** [Configure your database name]
+- **Host:** [Get from Neon Console]
+- **Region:** [Select your region]
 - **Connection Pooling:** Enabled (pooler)
 
 ### Database Schema
@@ -66,6 +66,7 @@ DATABASE_URL="postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?ss
 - Never commit your `.env` file to version control. It's already in `.gitignore`.
 - Never share your actual connection string publicly.
 - Always use environment variables for sensitive data.
+- Never include real database credentials in documentation files.
 
 ### Troubleshooting
 
@@ -77,6 +78,3 @@ DATABASE_URL="postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?ss
 **Migration Issues:**
 - Run `npx prisma migrate dev` to sync schema
 - Check `prisma/migrations` folder for migration history
-
-
-
