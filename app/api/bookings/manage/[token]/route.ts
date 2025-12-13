@@ -167,7 +167,7 @@ export async function PATCH(
       const emailDuration = updatedBooking.bookingDurationMinutes || updatedSlot!.durationMinutes || 60
       await sendBookingUpdateEmail({
         bookingId: updatedBooking.id,
-        bookingReference: updatedBooking.bookingReference,
+        bookingReference: updatedBooking.bookingReference || updatedBooking.id,
         firstName: updatedBooking.firstName,
         lastName: updatedBooking.lastName,
         email: updatedBooking.email,
@@ -243,7 +243,7 @@ export async function DELETE(
       const selectedRows = JSON.parse(booking.selectedRows) as number[]
       await sendBookingCancellationEmail({
         bookingId: booking.id,
-        bookingReference: booking.bookingReference,
+        bookingReference: booking.bookingReference || booking.id,
         firstName: booking.firstName,
         lastName: booking.lastName,
         email: booking.email,

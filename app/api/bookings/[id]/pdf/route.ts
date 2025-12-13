@@ -156,8 +156,8 @@ export async function GET(
       color: accentTeal,
     })
 
-    // Start from top of header with proper spacing
-    let currentY = height - 50
+    // Start from top of header with proper spacing - moved up
+    let currentY = height - 40
 
     // Draw logo if available (centered at top with original size)
     if (logoImage) {
@@ -165,8 +165,8 @@ export async function GET(
       const logoWidth = logoImage.width
       const logoHeight = logoImage.height
       
-      // Use original size, but limit max size to fit header nicely
-      const maxLogoSize = 100
+      // Use original size, but limit max size to fit header nicely - increased size
+      const maxLogoSize = 120
       let logoDisplayWidth = logoWidth
       let logoDisplayHeight = logoHeight
       
@@ -271,9 +271,8 @@ export async function GET(
       color: accentTeal,
     })
 
-    // Section title (English) with icon-like decoration
-    // Ensure title is well inside the box, not overlapping with subtitle above
-    const sectionTitleY = yPosition - 10 // Move title down a bit to ensure spacing
+    // Section title (English) with icon-like decoration - moved up
+    const sectionTitleY = yPosition + 5 // Move title up
     page.drawText('Booking Details', {
       x: 60,
       y: sectionTitleY,
@@ -421,10 +420,11 @@ export async function GET(
       color: accentTeal,
     })
 
-    // Section title (English) with decorative line
+    // Section title (English) with decorative line - moved up
+    const contactTitleY = yPosition + 5 // Move title up
     page.drawText('Contact Information', {
       x: 60,
-      y: yPosition,
+      y: contactTitleY,
       size: 20,
       font: helveticaBoldFont,
       color: primaryBlue,
@@ -432,13 +432,13 @@ export async function GET(
     
     // Decorative line under title
     page.drawLine({
-      start: { x: 60, y: yPosition - 5 },
-      end: { x: 250, y: yPosition - 5 },
+      start: { x: 60, y: contactTitleY - 5 },
+      end: { x: 250, y: contactTitleY - 5 },
       thickness: 2,
       color: accentTeal,
     })
 
-    yPosition -= 40
+    yPosition = contactTitleY - 40
 
     const contactDetails = [
       { label: 'Name:', value: sanitizeText(`${booking.firstName} ${booking.lastName}`) },

@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendBookingConfirmationEmail({
         bookingId: booking.id,
-        bookingReference: booking.bookingReference,
+        bookingReference: booking.bookingReference || booking.id,
         firstName: booking.firstName,
         lastName: booking.lastName,
         email: booking.email,
