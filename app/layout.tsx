@@ -84,7 +84,7 @@ export default function RootLayout({
               <div>
                 <h3 className="font-bold text-lg mb-3">جامعة القصيم</h3>
                 <p className="text-blue-200 text-sm">
-                  نظام حجز قاعات الامتحانات للطلاب وأعضاء هيئة التدريس.
+                  نظام حجز قاعات الامتحانات لأعضاء هيئة التدريس.
                 </p>
               </div>
               <div>
