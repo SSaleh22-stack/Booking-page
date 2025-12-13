@@ -37,10 +37,12 @@ vercel --prod
 DATABASE_URL=postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?sslmode=require
 ```
 - **مهم جداً:** يجب إضافة `DATABASE_URL` قبل أول بناء، وإلا سيفشل البناء
+- **مهم جداً:** القيمة يجب أن تبدأ بـ `postgresql://` أو `postgres://` (بدون علامات اقتباس أو مسافات)
 - استخدم نفس connection string من Neon
 - تأكد من إضافة `?sslmode=require` في النهاية
 - **للمزيد من التفاصيل:** راجع `VERCEL_DATABASE_SETUP.md`
 - **إذا واجهت خطأ:** راجع `VERCEL_BUILD_FIX.md`
+- **إذا كان الخطأ عن protocol:** راجع `VERCEL_DATABASE_URL_FIX.md`
 
 #### كلمة مرور الأدمن (Admin Password)
 ```
