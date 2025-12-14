@@ -149,7 +149,7 @@ export default function TimeSelection({ slot, durationMinutes, onTimeSelect, onB
       </div>
 
       {availableTimes.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-900">
           لا توجد أوقات بدء متاحة لهذه المدة ضمن النافذة الزمنية.
         </div>
       ) : (

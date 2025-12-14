@@ -114,7 +114,7 @@ export default function BookPage() {
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent mb-2 md:mb-3 text-center w-full break-words whitespace-normal px-2 leading-tight">
               احجز قاعة امتحان
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 font-medium text-center w-full break-words">جامعة القصيم</p>
+            <p className="text-base sm:text-lg md:text-xl text-gray-900 font-medium text-center w-full break-words">جامعة القصيم</p>
           </div>
 
           {/* Progress indicator */}

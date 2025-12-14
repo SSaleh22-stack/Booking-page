@@ -455,7 +455,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
         {loading ? (
           <div className="text-center py-8">جاري تحميل الحجوزات...</div>
         ) : bookings.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">لم يتم العثور على حجوزات.</div>
+          <div className="text-center py-8 text-gray-900">لم يتم العثور على حجوزات.</div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -505,7 +505,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                       <div className="text-sm font-mono font-bold text-gray-900">
                         {booking.bookingReference || 'غير متاح'}
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
+                      <div className="text-xs text-gray-900 mt-1">
                         الفترة: {booking.examSlotId?.substring(0, 12)}...
                       </div>
                     </td>
@@ -513,7 +513,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                       <div className="text-sm font-medium text-gray-900">
                         {format(new Date(booking.date), 'MMM d, yyyy')}
                       </div>
-                      <div className="text-xs text-gray-600">
+                      <div className="text-xs text-gray-900">
                         {formatTime(booking.startTime)} - {formatTime(calculateEndTime(booking.startTime, booking.durationMinutes))}
                       </div>
                     </td>
@@ -525,7 +525,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                       <div className="font-medium">{rowsDisplay}</div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-900 mt-1">
                         النطاق: {booking.rowStart}-{booking.rowEnd}
                       </div>
                     </td>
@@ -535,12 +535,12 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-900">
                         <a href={`mailto:${booking.email}`} className="text-blue-600 hover:underline">
                           {booking.email}
                         </a>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-900 mt-1">
                         <a href={`tel:${booking.phone}`} className="hover:underline">
                           {booking.phone}
                         </a>
@@ -556,7 +556,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                       >
                         {booking.status === 'CONFIRMED' ? 'مؤكد' : 'ملغي'}
                       </span>
-                      <div className="text-xs text-gray-400 mt-1">
+                      <div className="text-xs text-gray-900 mt-1">
                         تم الإنشاء: {format(new Date(booking.createdAt), 'MMM d')}
                       </div>
                     </td>
@@ -623,10 +623,10 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
             <h2 className="text-2xl font-bold mb-4">إعادة جدولة الحجز</h2>
             
             <div className="mb-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-900">
                 <strong>الدكتور:</strong> {rescheduleBooking.firstName} {rescheduleBooking.lastName}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-900">
                 <strong>الحالي:</strong> {format(new Date(rescheduleBooking.date), 'MMM d, yyyy')} في {formatTime(rescheduleBooking.startTime)}
               </p>
             </div>
@@ -649,7 +649,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                 {rescheduleLoading ? (
                   <div className="text-center py-4">جاري تحميل الفترات المتاحة...</div>
                 ) : availableSlots.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500">
+                  <div className="text-center py-4 text-gray-900">
                     لا توجد فترات متاحة لهذا التاريخ والمدة.
                   </div>
                 ) : (
@@ -670,7 +670,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                             }`}
                           >
                             <div className="font-semibold">{slot.locationName}</div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-900">
                               {formatTime(slot.startTime)} - {formatTime(slot.endTime || slot.startTime)}
                             </div>
                           </button>
@@ -768,7 +768,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           الصفوف المحددة ({selectedRows.length} صفوف)
                         </label>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-900">
                           {selectedRows.sort((a, b) => a - b).join(', ')}
                         </div>
                       </div>

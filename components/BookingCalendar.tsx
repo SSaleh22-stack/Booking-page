@@ -130,7 +130,7 @@ export default function BookingCalendar({ onDateSelect }: BookingCalendarProps) 
         </div>
       )}
 
-      <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
+      <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-900">
         <p>• التواريخ باللون الأزرق لديها فترات امتحان متاحة</p>
         <p>• انقر على تاريخ متاح للمتابعة</p>
       </div>

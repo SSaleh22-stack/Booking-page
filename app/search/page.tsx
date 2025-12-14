@@ -89,7 +89,7 @@ export default function SearchBookingPage() {
             <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-3">
               البحث عن حجز
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-900">
               أدخل مرجع الحجز والبريد الإلكتروني للبحث عن حجزك
             </p>
           </div>

@@ -226,7 +226,7 @@ export default function ManageBookingView({
                   className="w-full text-right p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
                 >
                   <div className="font-semibold text-gray-900">تغيير التاريخ والوقت</div>
-                  <div className="text-sm text-gray-600 mt-1">
+                  <div className="text-sm text-gray-900 mt-1">
                     اختر تاريخًا وفترة زمنية جديدة لامتحانك
                   </div>
                 </button>
@@ -236,7 +236,7 @@ export default function ManageBookingView({
                   className="w-full text-right p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
                 >
                   <div className="font-semibold text-gray-900">تغيير الصفوف</div>
-                  <div className="text-sm text-gray-600 mt-1">
+                  <div className="text-sm text-gray-900 mt-1">
                     اختر صفوفًا مختلفة لامتحانك
                   </div>
                 </button>
@@ -246,7 +246,7 @@ export default function ManageBookingView({
                   className="w-full text-right p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
                 >
                   <div className="font-semibold text-gray-900">تحديث معلومات الاتصال</div>
-                  <div className="text-sm text-gray-600 mt-1">
+                  <div className="text-sm text-gray-900 mt-1">
                     غيّر اسمك أو بريدك الإلكتروني أو رقم هاتفك
                   </div>
                 </button>

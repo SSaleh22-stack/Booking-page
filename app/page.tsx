@@ -28,7 +28,7 @@ export default function Home() {
           <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
             نظام حجز قاعات الامتحانات
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-900 mb-8 max-w-2xl mx-auto">
             احجز صفوف قاعات الامتحانات لامتحانات جامعة القصيم.
           </p>
           <Link
@@ -47,7 +47,7 @@ export default function Home() {
               <CalendarIcon />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">اختيار التاريخ بسهولة</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-900">
               تصفح التواريخ المتاحة في تقويم بديهي واختر الوقت المثالي لامتحانك.
             </p>
           </div>
@@ -57,7 +57,7 @@ export default function Home() {
               <MapPinIcon />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">اختر الموقع</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-900">
               اختر من بين مواقع قاعات الامتحانات المتعددة في حرم الجامعة.
             </p>
           </div>
@@ -67,7 +67,7 @@ export default function Home() {
               <UsersIcon />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">اختيار الصفوف</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-900">
               اختر صفوفًا محددة لحجز قاعة الامتحان مع توفر الوقت الفعلي.
             </p>
           </div>
@@ -90,7 +90,7 @@ export default function Home() {
                   {item.step}
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                <p className="text-sm text-gray-600">{item.desc}</p>
+                <p className="text-sm text-gray-900">{item.desc}</p>
               </div>
             ))}
           </div>

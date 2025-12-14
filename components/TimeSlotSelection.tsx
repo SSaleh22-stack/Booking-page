@@ -109,7 +109,7 @@ export default function TimeSlotSelection({ date, durationMinutes, onSlotSelect,
         <div className="text-center py-8">جاري تحميل الفترات الزمنية المتاحة...</div>
       ) : slots.length === 0 ? (
         <div className="text-center py-8">
-          <div className="text-gray-500 mb-4">
+          <div className="text-gray-900 mb-4">
             لا توجد فترات زمنية متاحة لهذا التاريخ مع مدة {formatDuration(durationMinutes)}.
           </div>
           <button
@@ -135,7 +135,7 @@ export default function TimeSlotSelection({ date, durationMinutes, onSlotSelect,
                   {slot.endTime ? `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}` : formatTime(slot.startTime)}
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-gray-900">
                 <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />

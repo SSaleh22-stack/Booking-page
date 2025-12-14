@@ -55,14 +55,14 @@ function BookingSuccessContent() {
             <h1 className="text-4xl font-bold text-blue-900 mb-3">
               تم تأكيد الحجز!
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-900">
               تم تأكيد حجز قاعة الامتحان الخاصة بك. ستصلك رسالة تأكيد بالبريد الإلكتروني قريبًا.
             </p>
           </div>
 
           {booking && booking.bookingReference && (
             <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-teal-50 rounded-xl border border-blue-200">
-              <p className="text-sm text-gray-600 mb-2 font-medium">مرجع الحجز:</p>
+              <p className="text-sm text-gray-900 mb-2 font-medium">مرجع الحجز:</p>
               <p className="font-mono text-lg font-bold text-blue-900 break-all">{booking.bookingReference}</p>
             </div>
           )}
@@ -102,7 +102,7 @@ function BookingSuccessContent() {
             <p className="text-sm font-semibold text-gray-700 mb-4">
               تحقق من بريدك الإلكتروني للحصول على:
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600 max-w-md mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-900 max-w-md mx-auto">
               <div className="flex items-center gap-2">
                 <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

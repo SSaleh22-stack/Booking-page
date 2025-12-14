@@ -149,7 +149,7 @@ export default function RowSelection({ slot, selectedStartTime, selectedDuration
               </p>
             </>
           ) : (
-            <p className="text-base sm:text-lg font-semibold text-gray-500">
+            <p className="text-base sm:text-lg font-semibold text-gray-900">
               لم يتم اختيار صفوف بعد
             </p>
           )}
