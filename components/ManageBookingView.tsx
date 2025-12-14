@@ -165,33 +165,33 @@ export default function ManageBookingView({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="text-sm font-medium text-gray-600">التاريخ</label>
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold text-gray-900">
                 {format(new Date(currentSlot.date), 'MMMM d, yyyy')}
               </p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">الوقت</label>
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold text-gray-900">
                 {formatTime(booking.bookingStartTime || currentSlot.startTime)} - {calculateEndTime(booking.bookingStartTime || currentSlot.startTime, booking.bookingDurationMinutes || currentSlot.durationMinutes || 60)}
               </p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">المدة</label>
-              <p className="text-lg font-semibold">{formatDuration(booking.bookingDurationMinutes || currentSlot.durationMinutes || 60)}</p>
+              <p className="text-lg font-semibold text-gray-900">{formatDuration(booking.bookingDurationMinutes || currentSlot.durationMinutes || 60)}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">الموقع</label>
-              <p className="text-lg font-semibold">{currentSlot.locationName}</p>
+              <p className="text-lg font-semibold text-gray-900">{currentSlot.locationName}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">الصفوف</label>
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold text-gray-900">
                 {selectedRows.sort((a, b) => a - b).join(', ')}
               </p>
             </div>
             <div className="md:col-span-2">
               <label className="text-sm font-medium text-gray-600">مرجع الحجز</label>
-              <p className="text-lg font-mono text-sm break-all">{booking.bookingReference || 'غير متاح'}</p>
+              <p className="text-lg font-mono text-sm break-all text-gray-900">{booking.bookingReference || 'غير متاح'}</p>
             </div>
           </div>
 
@@ -200,15 +200,15 @@ export default function ManageBookingView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-600">الاسم</label>
-                <p className="font-semibold">{formData.firstName} {formData.lastName}</p>
+                <p className="font-semibold text-gray-900">{formData.firstName} {formData.lastName}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-600">البريد الإلكتروني</label>
-                <p className="font-semibold">{formData.email}</p>
+                <p className="font-semibold text-gray-900">{formData.email}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-600">الهاتف</label>
-                <p className="font-semibold">{formData.phone}</p>
+                <p className="font-semibold text-gray-900">{formData.phone}</p>
               </div>
             </div>
           </div>
