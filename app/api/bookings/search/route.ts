@@ -32,7 +32,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ booking })
+    // Format booking for response (handle null examSlot)
+    const formattedBooking = {
+      ...booking,
+      date: booking.examSlot 
+        ? booking.examSlot.date.toISOString().split('T')[0]
+        : booking.preservedSlotDate?.toISOString().split('T')[0] || null,
+      startTime: booking.bookingStartTime || booking.examSlot?.startTime || null,
+      durationMinutes: booking.bookingDurationMinutes || booking.examSlot?.durationMinutes || 60,
+      locationName: booking.examSlot?.locationName || booking.preservedLocationName || 'غير متاح',
+    }
+
+    return NextResponse.json({ booking: formattedBooking })
   } catch (error) {
     console.error('Error searching booking:', error)
     return NextResponse.json(

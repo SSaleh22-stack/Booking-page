@@ -174,27 +174,31 @@ export default function SearchBookingPage() {
                   <div>
                     <label className="text-sm font-medium text-gray-600">التاريخ</label>
                     <p className="text-lg font-bold text-gray-900">
-                      {format(new Date(booking.examSlot.date), 'MMMM d, yyyy')}
+                      {booking.date ? format(new Date(booking.date), 'MMMM d, yyyy') : 'غير متاح'}
                     </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">الوقت</label>
                     <p className="text-lg font-bold text-gray-900">
-                      {formatTime(booking.bookingStartTime || booking.examSlot.startTime)} - {calculateEndTime(
-                        booking.bookingStartTime || booking.examSlot.startTime,
-                        booking.bookingDurationMinutes || booking.examSlot.durationMinutes || 60
-                      )}
+                      {booking.startTime ? (
+                        <>
+                          {formatTime(booking.startTime)} - {calculateEndTime(
+                            booking.startTime,
+                            booking.durationMinutes || 60
+                          )}
+                        </>
+                      ) : 'غير متاح'}
                     </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">المدة</label>
                     <p className="text-lg font-bold text-gray-900">
-                      {formatDuration(booking.bookingDurationMinutes || booking.examSlot.durationMinutes || 60)}
+                      {formatDuration(booking.durationMinutes || 60)}
                     </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">الموقع</label>
-                    <p className="text-lg font-bold text-gray-900">{booking.examSlot.locationName}</p>
+                    <p className="text-lg font-bold text-gray-900">{booking.locationName || 'غير متاح'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">الصفوف</label>
