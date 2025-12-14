@@ -105,7 +105,7 @@ export default function BookPage() {
           {/* Header */}
           <div className="mb-8 md:mb-12 text-center px-4 pt-4 md:pt-6">
             <div className="inline-block mb-4 md:mb-6">
-              <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-600 to-teal-600 rounded-2xl flex items-center justify-center mx-auto shadow-xl transform rotate-3">
+              <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-600 to-teal-600 rounded-2xl flex items-center justify-center mx-auto shadow-xl">
                 <svg className="w-10 h-10 md:w-12 md:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
