@@ -384,7 +384,7 @@ export default function ManageBookingView({
                         key={time}
                         onClick={() => handleTimeSelect(time)}
                         disabled={!isAvailable}
-                        className={`p-3 border-2 rounded-lg text-sm ${
+                        className={`p-3 border-2 rounded-lg text-sm text-gray-900 ${
                           selectedStartTime === time
                             ? 'border-blue-500 bg-blue-50'
                             : isAvailable
