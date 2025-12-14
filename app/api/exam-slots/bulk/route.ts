@@ -81,30 +81,37 @@ export async function DELETE(request: NextRequest) {
     if (examSlots.length > 0) {
       const { sendBookingCancellationEmail } = await import('@/lib/email')
       
+      // Count bookings before updating (to get accurate count)
+      for (const slot of examSlots) {
+        totalCancelledBookings += slot.bookings.filter(b => b.status === 'CONFIRMED').length
+      }
+      
       // Send cancellation emails first (before updating status)
       for (const slot of examSlots) {
         for (const booking of slot.bookings) {
-          try {
-            const selectedRows = JSON.parse(booking.selectedRows) as number[]
-            await sendBookingCancellationEmail({
-              bookingId: booking.id,
-              bookingReference: booking.bookingReference || booking.id,
-              firstName: booking.firstName,
-              lastName: booking.lastName,
-              email: booking.email,
-              date: slot.date.toISOString().split('T')[0],
-              startTime: booking.bookingStartTime || slot.startTime,
-              durationMinutes: booking.bookingDurationMinutes || slot.durationMinutes || 60,
-              locationName: slot.locationName,
-              selectedRows,
-              manageToken: booking.manageToken,
-            })
-            emailsSent++
-            console.log(`Cancellation email sent successfully to ${booking.email} for booking ${booking.id}`)
-          } catch (emailError) {
-            emailsFailed++
-            console.error(`Failed to send cancellation email for booking ${booking.id} to ${booking.email}:`, emailError)
-            // Continue with other bookings even if one email fails
+          if (booking.status === 'CONFIRMED') {
+            try {
+              const selectedRows = JSON.parse(booking.selectedRows) as number[]
+              await sendBookingCancellationEmail({
+                bookingId: booking.id,
+                bookingReference: booking.bookingReference || booking.id,
+                firstName: booking.firstName,
+                lastName: booking.lastName,
+                email: booking.email,
+                date: slot.date.toISOString().split('T')[0],
+                startTime: booking.bookingStartTime || slot.startTime,
+                durationMinutes: booking.bookingDurationMinutes || slot.durationMinutes || 60,
+                locationName: slot.locationName,
+                selectedRows,
+                manageToken: booking.manageToken,
+              })
+              emailsSent++
+              console.log(`Cancellation email sent successfully to ${booking.email} for booking ${booking.id}`)
+            } catch (emailError) {
+              emailsFailed++
+              console.error(`Failed to send cancellation email for booking ${booking.id} to ${booking.email}:`, emailError)
+              // Continue with other bookings even if one email fails
+            }
           }
         }
       }
@@ -112,21 +119,22 @@ export async function DELETE(request: NextRequest) {
       console.log(`Sent ${emailsSent} cancellation emails, ${emailsFailed} failed`)
 
       // Update all bookings to CANCELLED status (they will remain in database)
-      // Set examSlotId to null so we can delete the slots
-      const updateResult = await prisma.booking.updateMany({
-        where: {
-          examSlotId: {
-            in: validated.ids,
+      // Preserve exam slot information before setting examSlotId to null
+      // We need to update each booking individually to preserve the correct slot info
+      for (const slot of examSlots) {
+        await prisma.booking.updateMany({
+          where: {
+            examSlotId: slot.id,
+            status: 'CONFIRMED',
           },
-          status: 'CONFIRMED',
-        },
-        data: {
-          status: 'CANCELLED',
-          examSlotId: null, // Set to null so we can delete the slots
-        },
-      })
-
-      totalCancelledBookings = updateResult.count
+          data: {
+            status: 'CANCELLED',
+            preservedSlotDate: slot.date, // Preserve the date
+            preservedLocationName: slot.locationName, // Preserve the location
+            examSlotId: null, // Set to null so we can delete the slot
+          },
+        })
+      }
     }
 
     // Now delete the exam slots

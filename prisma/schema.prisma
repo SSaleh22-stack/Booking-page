@@ -46,6 +46,9 @@ model Booking {
   phone             String
   status            BookingStatus @default(CONFIRMED)
   manageToken       String   @unique
+  // Preserved exam slot information (for cancelled bookings when slot is deleted)
+  preservedSlotDate DateTime? // Date of the exam slot (preserved when slot is deleted)
+  preservedLocationName String? // Location name (preserved when slot is deleted)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

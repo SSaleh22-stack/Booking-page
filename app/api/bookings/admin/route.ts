@@ -50,8 +50,9 @@ export async function GET(request: NextRequest) {
     })
 
     // Format bookings for response
+    // Include bookings with exam slot OR with preserved slot info (cancelled bookings from deleted slots)
     const formattedBookings = bookings
-      .filter((booking) => booking.examSlot !== null) // Filter out bookings without exam slot
+      .filter((booking) => booking.examSlot !== null || booking.preservedSlotDate !== null)
       .map((booking) => {
         let selectedRows: number[] = []
         try {
@@ -60,19 +61,27 @@ export async function GET(request: NextRequest) {
           // Invalid JSON
         }
 
-        // TypeScript now knows examSlot is not null after filter
-        const examSlot = booking.examSlot!
+        // Use exam slot if available, otherwise use preserved info
+        const examSlot = booking.examSlot
+        const date = examSlot 
+          ? examSlot.date.toISOString().split('T')[0]
+          : booking.preservedSlotDate?.toISOString().split('T')[0] || ''
+        const startTime = booking.bookingStartTime || examSlot?.startTime || ''
+        const durationMinutes = booking.bookingDurationMinutes || examSlot?.durationMinutes || 60
+        const locationName = examSlot?.locationName || booking.preservedLocationName || ''
+        const rowStart = examSlot?.rowStart || 0
+        const rowEnd = examSlot?.rowEnd || 0
 
         return {
           id: booking.id,
           bookingReference: booking.bookingReference,
           examSlotId: booking.examSlotId,
-          date: examSlot.date.toISOString().split('T')[0],
-          startTime: booking.bookingStartTime || examSlot.startTime,
-          durationMinutes: booking.bookingDurationMinutes || examSlot.durationMinutes || 60,
-          locationName: examSlot.locationName,
-          rowStart: examSlot.rowStart,
-          rowEnd: examSlot.rowEnd,
+          date,
+          startTime,
+          durationMinutes,
+          locationName,
+          rowStart,
+          rowEnd,
           selectedRows,
           selectedRowsCount: selectedRows.length,
           firstName: booking.firstName,

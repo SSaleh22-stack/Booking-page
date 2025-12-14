@@ -173,7 +173,7 @@ export async function DELETE(
       console.log(`Sent ${emailsSent} cancellation emails, ${emailsFailed} failed`)
 
       // Update all bookings to CANCELLED status (they will remain in database)
-      // Set examSlotId to null so we can delete the slot
+      // Preserve exam slot information before setting examSlotId to null
       await prisma.booking.updateMany({
         where: {
           examSlotId: params.id,
@@ -181,6 +181,8 @@ export async function DELETE(
         },
         data: {
           status: 'CANCELLED',
+          preservedSlotDate: examSlot.date, // Preserve the date
+          preservedLocationName: examSlot.locationName, // Preserve the location
           examSlotId: null, // Set to null so we can delete the slot
         },
       })
