@@ -476,7 +476,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                   الصفوف (العدد)
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  الطبيب
+                  الدكتور
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   الاتصال
@@ -624,7 +624,7 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
             
             <div className="mb-4">
               <p className="text-sm text-gray-600">
-                <strong>الطبيب:</strong> {rescheduleBooking.firstName} {rescheduleBooking.lastName}
+                <strong>الدكتور:</strong> {rescheduleBooking.firstName} {rescheduleBooking.lastName}
               </p>
               <p className="text-sm text-gray-600">
                 <strong>الحالي:</strong> {format(new Date(rescheduleBooking.date), 'MMM d, yyyy')} في {formatTime(rescheduleBooking.startTime)}
