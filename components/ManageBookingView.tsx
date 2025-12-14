@@ -318,11 +318,11 @@ export default function ManageBookingView({
                   </button>
                 </div>
                 <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl border border-blue-200">
-                  <p className="text-sm text-blue-900 font-medium">
-                    الموقع: <strong className="text-blue-700">{selectedSlot.locationName}</strong>
+                  <p className="text-sm text-gray-900 font-medium">
+                    الموقع: <strong className="text-gray-900">{selectedSlot.locationName}</strong>
                   </p>
-                  <p className="text-sm text-blue-900 font-medium mt-1">
-                    النافذة الزمنية: <strong className="text-blue-700">{formatTime(selectedSlot.startTime)} - {formatTime(selectedSlot.endTime)}</strong>
+                  <p className="text-sm text-gray-900 font-medium mt-1">
+                    النافذة الزمنية: <strong className="text-gray-900">{formatTime(selectedSlot.startTime)} - {formatTime(selectedSlot.endTime)}</strong>
                   </p>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
@@ -392,7 +392,7 @@ export default function ManageBookingView({
                             : 'border-gray-100 bg-gray-50 opacity-40 cursor-not-allowed'
                         }`}
                       >
-                        <div className="font-semibold">{formatTime(time)}</div>
+                        <div className="font-semibold text-gray-900">{formatTime(time)}</div>
                         {isAvailable && (
                           <div className="text-xs text-green-600 mt-1">
                             {availableRowCount} صفوف
