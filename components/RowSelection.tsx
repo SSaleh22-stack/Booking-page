@@ -120,7 +120,7 @@ export default function RowSelection({ slot, selectedStartTime, selectedDuration
         <select
           value={numberOfRows}
           onChange={(e) => setNumberOfRows(parseInt(e.target.value))}
-          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
+          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium text-gray-900 bg-white"
         >
           {Array.from({ length: maxRows }, (_, i) => i + 1).map((num) => (
             <option key={num} value={num}>
