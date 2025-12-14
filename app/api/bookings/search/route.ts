@@ -14,20 +14,67 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Search for booking by reference and email
-    const booking = await prisma.booking.findFirst({
+    // Normalize inputs - remove all whitespace and convert to uppercase for reference
+    const normalizedReference = bookingReference.trim().toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '')
+    const normalizedEmail = email.trim().toLowerCase().replace(/\s+/g, '')
+
+    console.log('Searching for booking:', {
+      originalReference: bookingReference,
+      normalizedReference,
+      originalEmail: email,
+      normalizedEmail,
+    })
+
+    // First, search by email to get all bookings for this email
+    const bookingsByEmail = await prisma.booking.findMany({
       where: {
-        bookingReference: bookingReference.toUpperCase().trim(),
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
       },
       include: {
         examSlot: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
 
+    console.log(`Found ${bookingsByEmail.length} bookings for email:`, bookingsByEmail.map(b => ({
+      id: b.id,
+      bookingReference: b.bookingReference,
+      email: b.email,
+    })))
+
+    // Now filter by booking reference (handle null references and normalize)
+    let booking = bookingsByEmail.find(b => {
+      if (!b.bookingReference) return false
+      const storedRef = b.bookingReference.trim().toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '')
+      return storedRef === normalizedReference
+    })
+
+    // If still not found, try exact match with Prisma query as fallback
     if (!booking) {
+      const fallbackBooking = await prisma.booking.findFirst({
+        where: {
+          bookingReference: normalizedReference,
+          email: normalizedEmail,
+        },
+        include: {
+          examSlot: true,
+        },
+      })
+      if (fallbackBooking) {
+        booking = fallbackBooking
+      }
+    }
+
+    if (!booking) {
+      // Provide more helpful error message
+      const errorMessage = bookingsByEmail.length > 0
+        ? `لم يتم العثور على حجز بمرجع "${normalizedReference}" للبريد الإلكتروني "${normalizedEmail}". تم العثور على ${bookingsByEmail.length} حجز(حجوزات) أخرى لهذا البريد.`
+        : `لم يتم العثور على حجز بالبريد الإلكتروني "${normalizedEmail}". يرجى التحقق من مرجع الحجز والبريد الإلكتروني.`
+      
       return NextResponse.json(
-        { error: 'لم يتم العثور على الحجز. يرجى التحقق من مرجع الحجز والبريد الإلكتروني.' },
+        { error: errorMessage },
         { status: 404 }
       )
     }
