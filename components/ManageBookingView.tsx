@@ -158,6 +158,25 @@ export default function ManageBookingView({
           </div>
         )}
 
+        {/* Last Activity Section */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">آخر نشاط</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-600">تاريخ الإنشاء</label>
+              <p className="text-lg font-semibold text-gray-900">
+                {format(new Date(booking.createdAt), 'yyyy-MM-dd HH:mm')}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">آخر تحديث</label>
+              <p className="text-lg font-semibold text-gray-900">
+                {format(new Date(booking.updatedAt), 'yyyy-MM-dd HH:mm')}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Current Booking Details */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">تفاصيل الحجز الحالي</h2>
@@ -518,7 +537,7 @@ export default function ManageBookingView({
             </a>
             <a
               href={`/api/bookings/${booking.id}/pdf`}
-              className="bg-red-600 text-white px-6 py-3 rounded-xl hover:bg-red-700 transition-all text-center flex items-center justify-center min-w-[160px] font-semibold shadow-md hover:shadow-lg"
+              className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all text-center flex items-center justify-center min-w-[160px] font-semibold shadow-md hover:shadow-lg"
             >
               📄 تحميل PDF
             </a>
