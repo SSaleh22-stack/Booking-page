@@ -27,6 +27,17 @@ export async function GET(request: NextRequest) {
     const endOfDay = new Date(dateStr)
     endOfDay.setUTCHours(23, 59, 59, 999)
 
+    // Check if the date is in the past
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (startOfDay < today) {
+      return NextResponse.json(
+        { error: 'لا يمكن الحجز في التواريخ الماضية', slots: [] },
+        { status: 400 }
+      )
+    }
+
     const where: any = {
       date: {
         gte: startOfDay,

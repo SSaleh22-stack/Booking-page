@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns'
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isBefore, startOfDay } from 'date-fns'
 
 interface BookingCalendarProps {
   onDateSelect: (date: string) => void
@@ -55,6 +55,14 @@ export default function BookingCalendar({ onDateSelect }: BookingCalendarProps) 
   const emptyDays = Array(firstDayOfWeek).fill(null)
 
   const isDateAvailable = (date: Date) => {
+    // Check if date is in the past
+    const today = startOfDay(new Date())
+    const dateToCheck = startOfDay(date)
+    
+    if (isBefore(dateToCheck, today)) {
+      return false // Past dates are not available
+    }
+    
     const dateStr = format(date, 'yyyy-MM-dd')
     return availableDates.has(dateStr)
   }
@@ -122,15 +130,16 @@ export default function BookingCalendar({ onDateSelect }: BookingCalendarProps) 
               const dateStr = format(day, 'yyyy-MM-dd')
               const available = isDateAvailable(day)
               const isToday = isSameDay(day, new Date())
+              const isPast = isBefore(startOfDay(day), startOfDay(new Date()))
 
               return (
                 <button
                   key={dateStr}
                   onClick={() => handleDateClick(day)}
-                  disabled={!available}
+                  disabled={!available || isPast}
                   className={`
                     h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full transition-all font-medium flex items-center justify-center text-xs sm:text-sm md:text-base touch-target
-                    ${available
+                    ${available && !isPast
                       ? 'bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-900 cursor-pointer shadow-sm hover:shadow-md active:scale-95'
                       : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     }

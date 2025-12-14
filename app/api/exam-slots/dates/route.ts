@@ -11,14 +11,25 @@ export async function GET(request: NextRequest) {
     const fromDate = searchParams.get('fromDate')
     const toDate = searchParams.get('toDate')
 
+    // Get today's date at midnight (start of day) to exclude past dates
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     const where: any = {
       isActive: true,
+      date: {
+        gte: today, // Only include dates from today onwards
+      },
     }
 
     if (fromDate || toDate) {
-      where.date = {}
+      if (!where.date) {
+        where.date = {}
+      }
       if (fromDate) {
-        where.date.gte = new Date(fromDate)
+        const fromDateObj = new Date(fromDate)
+        // Use the later of today or fromDate
+        where.date.gte = fromDateObj > today ? fromDateObj : today
       }
       if (toDate) {
         where.date.lte = new Date(toDate)
