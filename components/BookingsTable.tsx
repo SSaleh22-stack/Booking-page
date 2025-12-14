@@ -27,6 +27,8 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
   const [manageBookingLoading, setManageBookingLoading] = useState(false)
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null)
+  const [selectedBookingIds, setSelectedBookingIds] = useState<Set<string>>(new Set())
+  const [deletingBookings, setDeletingBookings] = useState(false)
   const { showNotification, NotificationContainer } = useNotification()
 
   const fetchBookings = async () => {
@@ -400,10 +402,128 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
     }
   }
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedBookingIds(new Set(bookings.map(b => b.id)))
+    } else {
+      setSelectedBookingIds(new Set())
+    }
+  }
+
+  const handleSelectBooking = (bookingId: string, checked: boolean) => {
+    const newSelected = new Set(selectedBookingIds)
+    if (checked) {
+      newSelected.add(bookingId)
+    } else {
+      newSelected.delete(bookingId)
+    }
+    setSelectedBookingIds(newSelected)
+  }
+
+  const handleBulkDelete = async (sendEmail: boolean) => {
+    if (selectedBookingIds.size === 0) {
+      showNotification('يرجى اختيار حجوزات للحذف', 'error')
+      return
+    }
+
+    const confirmMessage = sendEmail
+      ? `هل أنت متأكد من حذف ${selectedBookingIds.size} حجز بشكل دائم وإرسال بريد إلكتروني للمستخدمين؟`
+      : `هل أنت متأكد من حذف ${selectedBookingIds.size} حجز بشكل دائم بدون إرسال بريد إلكتروني؟`
+
+    if (!confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      setDeletingBookings(true)
+      const response = await fetch('/api/bookings/admin/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ids: Array.from(selectedBookingIds),
+          sendEmail,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'فشل حذف الحجوزات')
+      }
+
+      const message = sendEmail
+        ? `تم حذف ${data.deletedCount} حجز بشكل دائم. تم إرسال ${data.emailsSent} بريد إلكتروني${data.emailsFailed > 0 ? ` (فشل ${data.emailsFailed})` : ''}`
+        : `تم حذف ${data.deletedCount} حجز بشكل دائم`
+
+      showNotification(message, 'success')
+      setSelectedBookingIds(new Set())
+      fetchBookings()
+    } catch (error: any) {
+      showNotification(error.message || 'فشل حذف الحجوزات', 'error')
+    } finally {
+      setDeletingBookings(false)
+    }
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      {/* Filters */}
+      {/* Filters and Bulk Actions */}
       <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+        {selectedBookingIds.size > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <span className="text-sm font-medium text-blue-900">
+                تم اختيار {selectedBookingIds.size} حجز
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleBulkDelete(true)}
+                  disabled={deletingBookings}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+                >
+                  {deletingBookings ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      جاري الحذف...
+                    </>
+                  ) : (
+                    <>
+                      🗑️ حذف مع إرسال بريد إلكتروني
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => handleBulkDelete(false)}
+                  disabled={deletingBookings}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+                >
+                  {deletingBookings ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      جاري الحذف...
+                    </>
+                  ) : (
+                    <>
+                      🗑️ حذف بدون بريد إلكتروني
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => setSelectedBookingIds(new Set())}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 text-sm font-medium"
+                >
+                  إلغاء الاختيار
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-xs text-gray-600 mb-1">الحالة</label>
@@ -461,6 +581,14 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <input
+                    type="checkbox"
+                    checked={selectedBookingIds.size === bookings.length && bookings.length > 0}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   مرجع الحجز
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -501,6 +629,14 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
                 
                 return (
                   <tr key={booking.id} className={booking.status === 'CANCELLED' ? 'opacity-60' : ''}>
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedBookingIds.has(booking.id)}
+                        onChange={(e) => handleSelectBooking(booking.id, e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right">
                       <div className="text-sm font-mono font-bold text-gray-900">
                         {booking.bookingReference || 'غير متاح'}
