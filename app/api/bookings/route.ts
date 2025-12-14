@@ -195,23 +195,25 @@ export async function POST(request: NextRequest) {
     })
 
     // Send confirmation email (don't block on email failure)
-    try {
-      await sendBookingConfirmationEmail({
-        bookingId: booking.id,
-        bookingReference: booking.bookingReference || booking.id,
-        firstName: booking.firstName,
-        lastName: booking.lastName,
-        email: booking.email,
-        date: booking.examSlot.date.toISOString().split('T')[0],
-        startTime: booking.bookingStartTime || booking.examSlot.startTime,
-        durationMinutes: booking.bookingDurationMinutes || booking.examSlot.durationMinutes || 60,
-        locationName: booking.examSlot.locationName,
-        selectedRows: validated.selectedRows,
-        manageToken: booking.manageToken,
-      })
-    } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError)
-      // Continue even if email fails
+    if (booking.examSlot) {
+      try {
+        await sendBookingConfirmationEmail({
+          bookingId: booking.id,
+          bookingReference: booking.bookingReference || booking.id,
+          firstName: booking.firstName,
+          lastName: booking.lastName,
+          email: booking.email,
+          date: booking.examSlot.date.toISOString().split('T')[0],
+          startTime: booking.bookingStartTime || booking.examSlot.startTime,
+          durationMinutes: booking.bookingDurationMinutes || booking.examSlot.durationMinutes || 60,
+          locationName: booking.examSlot.locationName,
+          selectedRows: validated.selectedRows,
+          manageToken: booking.manageToken,
+        })
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError)
+        // Continue even if email fails
+      }
     }
 
     return NextResponse.json({ booking }, { status: 201 })

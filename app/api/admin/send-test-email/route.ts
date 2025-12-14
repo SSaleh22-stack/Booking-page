@@ -24,6 +24,9 @@ export async function POST(request: NextRequest) {
     const booking = await prisma.booking.findFirst({
       where: {
         status: 'CONFIRMED',
+        examSlotId: {
+          not: null, // Only get bookings with an exam slot
+        },
       },
       include: {
         examSlot: true,
@@ -37,6 +40,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'لا توجد حجوزات متاحة لإرسال رسالة تجريبية' },
         { status: 404 }
+      )
+    }
+
+    if (!booking.examSlot) {
+      return NextResponse.json(
+        { error: 'الحجز المحدد لا يحتوي على فترة امتحان مرتبطة' },
+        { status: 400 }
       )
     }
 

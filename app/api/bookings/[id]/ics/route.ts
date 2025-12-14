@@ -29,6 +29,13 @@ export async function GET(
       )
     }
 
+    if (!booking.examSlot) {
+      return NextResponse.json(
+        { error: 'Booking does not have an associated exam slot' },
+        { status: 400 }
+      )
+    }
+
     // Parse date and time
     const slotDate = new Date(booking.examSlot.date)
     const startTime = booking.bookingStartTime || booking.examSlot.startTime

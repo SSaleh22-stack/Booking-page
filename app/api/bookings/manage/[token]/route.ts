@@ -24,6 +24,13 @@ export async function GET(
       )
     }
 
+    if (!booking.examSlot) {
+      return NextResponse.json(
+        { error: 'الحجز لا يحتوي على فترة امتحان مرتبطة' },
+        { status: 400 }
+      )
+    }
+
     const selectedRows = JSON.parse(booking.selectedRows) as number[]
 
     return NextResponse.json({
@@ -78,6 +85,13 @@ export async function PATCH(
     }
 
     // Determine which exam slot to use
+    if (!existingBooking.examSlotId) {
+      return NextResponse.json(
+        { error: 'الحجز لا يحتوي على فترة امتحان مرتبطة' },
+        { status: 400 }
+      )
+    }
+
     const examSlotId = validated.examSlotId || existingBooking.examSlotId
     const examSlot = await prisma.examSlot.findUnique({
       where: { id: examSlotId },
@@ -157,24 +171,31 @@ export async function PATCH(
 
     // Get the updated slot if it changed
     const updatedSlot = updatedBooking.examSlotId !== existingBooking.examSlotId
-      ? await prisma.examSlot.findUnique({ where: { id: updatedBooking.examSlotId } })
+      ? await prisma.examSlot.findUnique({ where: { id: updatedBooking.examSlotId || undefined } })
       : updatedBooking.examSlot
+
+    if (!updatedSlot) {
+      return NextResponse.json(
+        { error: 'فترة الامتحان غير موجودة' },
+        { status: 404 }
+      )
+    }
 
     // Send update email
     try {
       const finalSelectedRows = validated.selectedRows || selectedRows
-      const emailStartTime = updatedBooking.bookingStartTime || updatedSlot!.startTime
-      const emailDuration = updatedBooking.bookingDurationMinutes || updatedSlot!.durationMinutes || 60
+      const emailStartTime = updatedBooking.bookingStartTime || updatedSlot.startTime
+      const emailDuration = updatedBooking.bookingDurationMinutes || updatedSlot.durationMinutes || 60
       await sendBookingUpdateEmail({
         bookingId: updatedBooking.id,
         bookingReference: updatedBooking.bookingReference || updatedBooking.id,
         firstName: updatedBooking.firstName,
         lastName: updatedBooking.lastName,
         email: updatedBooking.email,
-        date: updatedSlot!.date.toISOString().split('T')[0],
+        date: updatedSlot.date.toISOString().split('T')[0],
         startTime: emailStartTime,
         durationMinutes: emailDuration,
-        locationName: updatedSlot!.locationName,
+        locationName: updatedSlot.locationName,
         selectedRows: finalSelectedRows,
         manageToken: updatedBooking.manageToken,
       })
@@ -186,7 +207,7 @@ export async function PATCH(
       booking: {
         ...updatedBooking,
         selectedRows: JSON.parse(updatedBooking.selectedRows),
-        date: updatedSlot!.date.toISOString().split('T')[0],
+        date: updatedSlot.date.toISOString().split('T')[0],
       },
     })
   } catch (error) {
@@ -239,23 +260,25 @@ export async function DELETE(
     })
 
     // Send cancellation email
-    try {
-      const selectedRows = JSON.parse(booking.selectedRows) as number[]
-      await sendBookingCancellationEmail({
-        bookingId: booking.id,
-        bookingReference: booking.bookingReference || booking.id,
-        firstName: booking.firstName,
-        lastName: booking.lastName,
-        email: booking.email,
-        date: booking.examSlot.date.toISOString().split('T')[0],
-        startTime: booking.bookingStartTime || booking.examSlot.startTime,
-        durationMinutes: booking.bookingDurationMinutes || booking.examSlot.durationMinutes || 60,
-        locationName: booking.examSlot.locationName,
-        selectedRows,
-        manageToken: booking.manageToken,
-      })
-    } catch (emailError) {
-      console.error('Failed to send cancellation email:', emailError)
+    if (booking.examSlot) {
+      try {
+        const selectedRows = JSON.parse(booking.selectedRows) as number[]
+        await sendBookingCancellationEmail({
+          bookingId: booking.id,
+          bookingReference: booking.bookingReference || booking.id,
+          firstName: booking.firstName,
+          lastName: booking.lastName,
+          email: booking.email,
+          date: booking.examSlot.date.toISOString().split('T')[0],
+          startTime: booking.bookingStartTime || booking.examSlot.startTime,
+          durationMinutes: booking.bookingDurationMinutes || booking.examSlot.durationMinutes || 60,
+          locationName: booking.examSlot.locationName,
+          selectedRows,
+          manageToken: booking.manageToken,
+        })
+      } catch (emailError) {
+        console.error('Failed to send cancellation email:', emailError)
+      }
     }
 
     return NextResponse.json({ message: 'تم إلغاء الحجز بنجاح' })

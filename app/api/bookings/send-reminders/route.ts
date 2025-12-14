@@ -32,6 +32,13 @@ export async function POST(request: NextRequest) {
     // Send reminder emails
     for (const booking of bookings) {
       try {
+        // Skip bookings without exam slot
+        if (!booking.examSlot) {
+          console.warn(`Skipping booking ${booking.id} - no exam slot associated`)
+          errorCount++
+          continue
+        }
+
         const selectedRows = JSON.parse(booking.selectedRows) as number[]
         await sendBookingReminderEmail({
           bookingId: booking.id,
@@ -91,14 +98,16 @@ export async function GET() {
     })
 
     return NextResponse.json({
-      count: bookings.length,
+      count: bookings.filter(b => b.examSlot !== null).length,
       date: tomorrowDateStr,
-      bookings: bookings.map(b => ({
-        id: b.id,
-        bookingReference: b.bookingReference,
-        email: b.email,
-        date: b.examSlot.date.toISOString().split('T')[0],
-      })),
+      bookings: bookings
+        .filter(b => b.examSlot !== null)
+        .map(b => ({
+          id: b.id,
+          bookingReference: b.bookingReference,
+          email: b.email,
+          date: b.examSlot!.date.toISOString().split('T')[0],
+        })),
     })
   } catch (error) {
     console.error('Error checking reminders:', error)

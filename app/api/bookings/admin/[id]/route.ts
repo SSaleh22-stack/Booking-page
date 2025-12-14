@@ -39,23 +39,25 @@ export async function DELETE(
     })
 
     // Send cancellation email
-    try {
-      const selectedRows = JSON.parse(booking.selectedRows) as number[]
-      await sendBookingCancellationEmail({
-        bookingId: booking.id,
-        bookingReference: booking.bookingReference || booking.id,
-        firstName: booking.firstName,
-        lastName: booking.lastName,
-        email: booking.email,
-        date: booking.examSlot.date.toISOString().split('T')[0],
-        startTime: booking.bookingStartTime || booking.examSlot.startTime,
-        durationMinutes: booking.bookingDurationMinutes || booking.examSlot.durationMinutes || 60,
-        locationName: booking.examSlot.locationName,
-        selectedRows,
-        manageToken: booking.manageToken,
-      })
-    } catch (emailError) {
-      console.error('Failed to send cancellation email:', emailError)
+    if (booking.examSlot) {
+      try {
+        const selectedRows = JSON.parse(booking.selectedRows) as number[]
+        await sendBookingCancellationEmail({
+          bookingId: booking.id,
+          bookingReference: booking.bookingReference || booking.id,
+          firstName: booking.firstName,
+          lastName: booking.lastName,
+          email: booking.email,
+          date: booking.examSlot.date.toISOString().split('T')[0],
+          startTime: booking.bookingStartTime || booking.examSlot.startTime,
+          durationMinutes: booking.bookingDurationMinutes || booking.examSlot.durationMinutes || 60,
+          locationName: booking.examSlot.locationName,
+          selectedRows,
+          manageToken: booking.manageToken,
+        })
+      } catch (emailError) {
+        console.error('Failed to send cancellation email:', emailError)
+      }
     }
 
     return NextResponse.json({ message: 'تم إلغاء الحجز بنجاح' })
@@ -102,6 +104,13 @@ export async function PATCH(
     if (existingBooking.status === 'CANCELLED') {
       return NextResponse.json(
         { error: 'لا يمكن إعادة جدولة حجز ملغي' },
+        { status: 400 }
+      )
+    }
+
+    if (!existingBooking.examSlotId) {
+      return NextResponse.json(
+        { error: 'الحجز لا يحتوي على فترة امتحان مرتبطة' },
         { status: 400 }
       )
     }
@@ -262,8 +271,15 @@ export async function PATCH(
 
     // Get the updated slot if it changed
     const updatedSlot = updatedBooking.examSlotId !== existingBooking.examSlotId
-      ? await prisma.examSlot.findUnique({ where: { id: updatedBooking.examSlotId } })
+      ? await prisma.examSlot.findUnique({ where: { id: updatedBooking.examSlotId || undefined } })
       : updatedBooking.examSlot
+
+    if (!updatedSlot) {
+      return NextResponse.json(
+        { error: 'فترة الامتحان غير موجودة' },
+        { status: 404 }
+      )
+    }
 
     // Send update email
     try {
@@ -273,10 +289,10 @@ export async function PATCH(
         firstName: updatedBooking.firstName,
         lastName: updatedBooking.lastName,
         email: updatedBooking.email,
-        date: updatedSlot!.date.toISOString().split('T')[0],
+        date: updatedSlot.date.toISOString().split('T')[0],
         startTime: bookingStartTime,
         durationMinutes: bookingDurationMinutes,
-        locationName: updatedSlot!.locationName,
+        locationName: updatedSlot.locationName,
         selectedRows,
         manageToken: updatedBooking.manageToken,
       })
@@ -288,7 +304,7 @@ export async function PATCH(
       booking: {
         ...updatedBooking,
         selectedRows: JSON.parse(updatedBooking.selectedRows),
-        date: updatedSlot!.date.toISOString().split('T')[0],
+        date: updatedSlot.date.toISOString().split('T')[0],
       },
     })
   } catch (error) {

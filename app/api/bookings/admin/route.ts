@@ -50,36 +50,41 @@ export async function GET(request: NextRequest) {
     })
 
     // Format bookings for response
-    const formattedBookings = bookings.map((booking) => {
-      let selectedRows: number[] = []
-      try {
-        selectedRows = JSON.parse(booking.selectedRows) as number[]
-      } catch {
-        // Invalid JSON
-      }
+    const formattedBookings = bookings
+      .filter((booking) => booking.examSlot !== null) // Filter out bookings without exam slot
+      .map((booking) => {
+        let selectedRows: number[] = []
+        try {
+          selectedRows = JSON.parse(booking.selectedRows) as number[]
+        } catch {
+          // Invalid JSON
+        }
 
-      return {
-        id: booking.id,
-        bookingReference: booking.bookingReference,
-        examSlotId: booking.examSlotId,
-        date: booking.examSlot.date.toISOString().split('T')[0],
-        startTime: booking.bookingStartTime || booking.examSlot.startTime,
-        durationMinutes: booking.bookingDurationMinutes || booking.examSlot.durationMinutes || 60,
-        locationName: booking.examSlot.locationName,
-        rowStart: booking.examSlot.rowStart,
-        rowEnd: booking.examSlot.rowEnd,
-        selectedRows,
-        selectedRowsCount: selectedRows.length,
-        firstName: booking.firstName,
-        lastName: booking.lastName,
-        email: booking.email,
-        phone: booking.phone,
-        status: booking.status,
-        manageToken: booking.manageToken,
-        createdAt: booking.createdAt.toISOString(),
-        updatedAt: booking.updatedAt.toISOString(),
-      }
-    })
+        // TypeScript now knows examSlot is not null after filter
+        const examSlot = booking.examSlot!
+
+        return {
+          id: booking.id,
+          bookingReference: booking.bookingReference,
+          examSlotId: booking.examSlotId,
+          date: examSlot.date.toISOString().split('T')[0],
+          startTime: booking.bookingStartTime || examSlot.startTime,
+          durationMinutes: booking.bookingDurationMinutes || examSlot.durationMinutes || 60,
+          locationName: examSlot.locationName,
+          rowStart: examSlot.rowStart,
+          rowEnd: examSlot.rowEnd,
+          selectedRows,
+          selectedRowsCount: selectedRows.length,
+          firstName: booking.firstName,
+          lastName: booking.lastName,
+          email: booking.email,
+          phone: booking.phone,
+          status: booking.status,
+          manageToken: booking.manageToken,
+          createdAt: booking.createdAt.toISOString(),
+          updatedAt: booking.updatedAt.toISOString(),
+        }
+      })
 
     return NextResponse.json({ bookings: formattedBookings })
   } catch (error) {
