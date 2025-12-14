@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Helper function to normalize booking reference
+function normalizeBookingReference(ref: string | null | undefined): string {
+  if (!ref) return ''
+  return ref.trim().toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '')
+}
+
+// Helper function to normalize email
+function normalizeEmail(email: string | null | undefined): string {
+  if (!email) return ''
+  return email.trim().toLowerCase().replace(/\s+/g, '')
+}
+
 // POST /api/bookings/search
 export async function POST(request: NextRequest) {
   try {
@@ -14,19 +26,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Normalize inputs - remove all whitespace and convert to uppercase for reference
-    const normalizedReference = bookingReference.trim().toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '')
-    const normalizedEmail = email.trim().toLowerCase().replace(/\s+/g, '')
+    // Normalize inputs
+    const normalizedReference = normalizeBookingReference(bookingReference)
+    const normalizedEmail = normalizeEmail(email)
 
-    console.log('Searching for booking:', {
-      originalReference: bookingReference,
-      normalizedReference,
-      originalEmail: email,
-      normalizedEmail,
-    })
+    console.log('=== SEARCH REQUEST ===')
+    console.log('Original Reference:', bookingReference)
+    console.log('Normalized Reference:', normalizedReference)
+    console.log('Original Email:', email)
+    console.log('Normalized Email:', normalizedEmail)
 
-    // First, search by email to get all bookings for this email
-    const bookingsByEmail = await prisma.booking.findMany({
+    if (!normalizedReference || !normalizedEmail) {
+      return NextResponse.json(
+        { error: 'مرجع الحجز والبريد الإلكتروني غير صالحين' },
+        { status: 400 }
+      )
+    }
+
+    // Strategy 1: Search by normalized email first (exact match)
+    let bookingsByEmail = await prisma.booking.findMany({
       where: {
         email: normalizedEmail,
       },
@@ -38,22 +56,43 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    console.log(`Found ${bookingsByEmail.length} bookings for email:`, bookingsByEmail.map(b => ({
-      id: b.id,
-      bookingReference: b.bookingReference,
-      email: b.email,
-    })))
+    console.log(`Found ${bookingsByEmail.length} bookings for email (exact match)`)
 
-    // Now filter by booking reference (handle null references and normalize)
+    // Strategy 1b: If no exact match, try case-insensitive email search
+    if (bookingsByEmail.length === 0) {
+      bookingsByEmail = await prisma.booking.findMany({
+        where: {
+          email: {
+            contains: normalizedEmail,
+            mode: 'insensitive',
+          },
+        },
+        include: {
+          examSlot: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+      console.log(`Found ${bookingsByEmail.length} bookings for email (case-insensitive)`)
+    }
+
+    // Strategy 2: Filter by booking reference in memory (most reliable)
     let booking = bookingsByEmail.find(b => {
-      if (!b.bookingReference) return false
-      const storedRef = b.bookingReference.trim().toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '')
-      return storedRef === normalizedReference
+      if (!b.bookingReference) {
+        console.log(`Booking ${b.id} has no bookingReference`)
+        return false
+      }
+      const storedRef = normalizeBookingReference(b.bookingReference)
+      const match = storedRef === normalizedReference
+      console.log(`Comparing: "${storedRef}" === "${normalizedReference}" = ${match}`)
+      return match
     })
 
-    // If still not found, try exact match with Prisma query as fallback
+    // Strategy 3: If not found, try direct Prisma query with exact match
     if (!booking) {
-      const fallbackBooking = await prisma.booking.findFirst({
+      console.log('Trying direct Prisma query (exact match)...')
+      const directBooking = await prisma.booking.findFirst({
         where: {
           bookingReference: normalizedReference,
           email: normalizedEmail,
@@ -62,22 +101,110 @@ export async function POST(request: NextRequest) {
           examSlot: true,
         },
       })
-      if (fallbackBooking) {
-        booking = fallbackBooking
+      
+      if (directBooking) {
+        console.log('Found booking via direct query (exact match)')
+        booking = directBooking
       }
     }
 
+    // Strategy 4: Try with original values (non-normalized)
     if (!booking) {
-      // Provide more helpful error message
+      console.log('Trying with original values...')
+      const originalBooking = await prisma.booking.findFirst({
+        where: {
+          OR: [
+            { 
+              bookingReference: bookingReference.trim(),
+              email: email.trim(),
+            },
+            { 
+              bookingReference: bookingReference.trim().toUpperCase(),
+              email: email.trim().toLowerCase(),
+            },
+            { 
+              bookingReference: bookingReference.trim().toLowerCase(),
+              email: email.trim().toUpperCase(),
+            },
+          ],
+        },
+        include: {
+          examSlot: true,
+        },
+      })
+      
+      if (originalBooking) {
+        console.log('Found booking via original values')
+        booking = originalBooking
+      }
+    }
+
+    // Strategy 5: Try case-insensitive email with exact reference
+    if (!booking) {
+      console.log('Trying case-insensitive email with exact reference...')
+      const caseInsensitiveBooking = await prisma.booking.findFirst({
+        where: {
+          bookingReference: normalizedReference,
+          email: {
+            contains: normalizedEmail,
+            mode: 'insensitive',
+          },
+        },
+        include: {
+          examSlot: true,
+        },
+      })
+      
+      if (caseInsensitiveBooking) {
+        console.log('Found booking via case-insensitive email')
+        booking = caseInsensitiveBooking
+      }
+    }
+
+    // Strategy 6: Try partial reference match (if reference is at least 6 characters)
+    if (!booking && normalizedReference.length >= 6) {
+      console.log('Trying partial reference match...')
+      const partialBooking = bookingsByEmail.find(b => {
+        if (!b.bookingReference) return false
+        const storedRef = normalizeBookingReference(b.bookingReference)
+        return storedRef.startsWith(normalizedReference) || normalizedReference.startsWith(storedRef)
+      })
+      
+      if (partialBooking) {
+        console.log('Found booking via partial match')
+        booking = partialBooking
+      }
+    }
+
+    // Log all bookings found for debugging
+    if (bookingsByEmail.length > 0 && !booking) {
+      console.log('All bookings found for this email:')
+      bookingsByEmail.forEach(b => {
+        console.log(`  - ID: ${b.id}, Reference: "${b.bookingReference}", Email: "${b.email}"`)
+      })
+    }
+
+    if (!booking) {
       const errorMessage = bookingsByEmail.length > 0
-        ? `لم يتم العثور على حجز بمرجع "${normalizedReference}" للبريد الإلكتروني "${normalizedEmail}". تم العثور على ${bookingsByEmail.length} حجز(حجوزات) أخرى لهذا البريد.`
-        : `لم يتم العثور على حجز بالبريد الإلكتروني "${normalizedEmail}". يرجى التحقق من مرجع الحجز والبريد الإلكتروني.`
+        ? `لم يتم العثور على حجز بمرجع "${bookingReference}" للبريد الإلكتروني "${email}". تم العثور على ${bookingsByEmail.length} حجز(حجوزات) أخرى لهذا البريد.`
+        : `لم يتم العثور على حجز بالبريد الإلكتروني "${email}". يرجى التحقق من مرجع الحجز والبريد الإلكتروني.`
+      
+      console.log('=== SEARCH FAILED ===')
+      console.log('Error:', errorMessage)
       
       return NextResponse.json(
         { error: errorMessage },
         { status: 404 }
       )
     }
+
+    console.log('=== SEARCH SUCCESS ===')
+    console.log('Found booking:', {
+      id: booking.id,
+      bookingReference: booking.bookingReference,
+      email: booking.email,
+      status: booking.status,
+    })
 
     // Format booking for response (handle null examSlot)
     const formattedBooking = {
@@ -92,6 +219,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ booking: formattedBooking })
   } catch (error) {
+    console.error('=== SEARCH ERROR ===')
     console.error('Error searching booking:', error)
     return NextResponse.json(
       { error: 'حدث خطأ أثناء البحث عن الحجز' },
@@ -99,4 +227,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
