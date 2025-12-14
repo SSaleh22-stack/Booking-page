@@ -2,7 +2,8 @@
 
 import { useState, useMemo, Fragment } from 'react'
 import ExamSlotForm from './ExamSlotForm'
-import { useNotification } from '@/hooks/useNotification'
+import ConfirmationModal from './ConfirmationModal'
+import MessageModal from './MessageModal'
 
 interface ExamSlotsTableProps {
   slots: any[]
@@ -33,7 +34,28 @@ export default function ExamSlotsTable({ slots, onUpdate, onDelete }: ExamSlotsT
   const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set())
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
   const [viewMode, setViewMode] = useState<'grouped' | 'individual'>('grouped')
-  const { showNotification, NotificationContainer } = useNotification()
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+    type?: 'danger' | 'warning' | 'info'
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
+  const [messageModal, setMessageModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    type?: 'success' | 'error' | 'info'
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+  })
 
   const formatDuration = (minutes: number) => {
     if (minutes === 60) return 'ساعة واحدة'
@@ -114,29 +136,49 @@ export default function ExamSlotsTable({ slots, onUpdate, onDelete }: ExamSlotsT
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('هل أنت متأكد من حذف فترة الامتحان هذه؟')) {
-      return
-    }
+  const handleDelete = (id: string) => {
+    setConfirmationModal({
+      isOpen: true,
+      title: 'تأكيد الحذف',
+      message: 'هل أنت متأكد من حذف فترة الامتحان هذه؟',
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmationModal({ ...confirmationModal, isOpen: false })
+        try {
+          setDeletingSlotId(id)
+          const response = await fetch(`/api/exam-slots/${id}`, {
+            method: 'DELETE',
+          })
 
-    try {
-      setDeletingSlotId(id)
-      const response = await fetch(`/api/exam-slots/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        showNotification('تم حذف الفترة بنجاح', 'success')
-        onDelete()
-      } else {
-        showNotification('فشل حذف الفترة', 'error')
-      }
-    } catch (error) {
-      console.error('Error deleting slot:', error)
-      showNotification('فشل حذف الفترة', 'error')
-    } finally {
-      setDeletingSlotId(null)
-    }
+          if (response.ok) {
+            setMessageModal({
+              isOpen: true,
+              title: 'نجح',
+              message: 'تم حذف الفترة بنجاح',
+              type: 'success',
+            })
+            onDelete()
+          } else {
+            setMessageModal({
+              isOpen: true,
+              title: 'خطأ',
+              message: 'فشل حذف الفترة',
+              type: 'error',
+            })
+          }
+        } catch (error) {
+          console.error('Error deleting slot:', error)
+          setMessageModal({
+            isOpen: true,
+            title: 'خطأ',
+            message: 'فشل حذف الفترة',
+            type: 'error',
+          })
+        } finally {
+          setDeletingSlotId(null)
+        }
+      },
+    })
   }
 
   // Multi-select handlers
@@ -163,36 +205,56 @@ export default function ExamSlotsTable({ slots, onUpdate, onDelete }: ExamSlotsT
   }
 
   // Bulk actions
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedSlots.size === 0) return
     
     const count = selectedSlots.size
-    if (!confirm(`هل أنت متأكد من حذف ${count} فترة(فترات) امتحان؟`)) {
-      return
-    }
+    setConfirmationModal({
+      isOpen: true,
+      title: 'تأكيد الحذف',
+      message: `هل أنت متأكد من حذف ${count} فترة(فترات) امتحان؟`,
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmationModal({ ...confirmationModal, isOpen: false })
+        try {
+          setBulkActionLoading(true)
+          const response = await fetch('/api/exam-slots/bulk', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: Array.from(selectedSlots) }),
+          })
 
-    try {
-      setBulkActionLoading(true)
-      const response = await fetch('/api/exam-slots/bulk', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: Array.from(selectedSlots) }),
-      })
-
-      const data = await response.json()
-      if (response.ok) {
-        showNotification(`تم حذف ${data.deletedCount} فترة(فترات) بنجاح`, 'success')
-        clearSelection()
-        onDelete()
-      } else {
-        showNotification(data.error || 'فشل حذف الفترات', 'error')
-      }
-    } catch (error) {
-      console.error('Error deleting slots:', error)
-      showNotification('فشل حذف الفترات', 'error')
-    } finally {
-      setBulkActionLoading(false)
-    }
+          const data = await response.json()
+          if (response.ok) {
+            setMessageModal({
+              isOpen: true,
+              title: 'نجح',
+              message: `تم حذف ${data.deletedCount} فترة(فترات) بنجاح`,
+              type: 'success',
+            })
+            clearSelection()
+            onDelete()
+          } else {
+            setMessageModal({
+              isOpen: true,
+              title: 'خطأ',
+              message: data.error || 'فشل حذف الفترات',
+              type: 'error',
+            })
+          }
+        } catch (error) {
+          console.error('Error deleting slots:', error)
+          setMessageModal({
+            isOpen: true,
+            title: 'خطأ',
+            message: 'فشل حذف الفترات',
+            type: 'error',
+          })
+        } finally {
+          setBulkActionLoading(false)
+        }
+      },
+    })
   }
 
   const handleBulkActivate = async (activate: boolean) => {
@@ -211,15 +273,30 @@ export default function ExamSlotsTable({ slots, onUpdate, onDelete }: ExamSlotsT
 
       const data = await response.json()
       if (response.ok) {
-        showNotification(`تم ${activate ? 'تفعيل' : 'إلغاء تفعيل'} ${data.updatedCount} فترة(فترات) بنجاح`, 'success')
+        setMessageModal({
+          isOpen: true,
+          title: 'نجح',
+          message: `تم ${activate ? 'تفعيل' : 'إلغاء تفعيل'} ${data.updatedCount} فترة(فترات) بنجاح`,
+          type: 'success',
+        })
         clearSelection()
         onUpdate()
       } else {
-        showNotification(data.error || `فشل ${activate ? 'تفعيل' : 'إلغاء تفعيل'} الفترات`, 'error')
+        setMessageModal({
+          isOpen: true,
+          title: 'خطأ',
+          message: data.error || `فشل ${activate ? 'تفعيل' : 'إلغاء تفعيل'} الفترات`,
+          type: 'error',
+        })
       }
     } catch (error) {
       console.error('Error updating slots:', error)
-      showNotification(`فشل ${activate ? 'تفعيل' : 'إلغاء تفعيل'} الفترات`, 'error')
+      setMessageModal({
+        isOpen: true,
+        title: 'خطأ',
+        message: `فشل ${activate ? 'تفعيل' : 'إلغاء تفعيل'} الفترات`,
+        type: 'error',
+      })
     } finally {
       setBulkActionLoading(false)
     }
@@ -586,7 +663,21 @@ export default function ExamSlotsTable({ slots, onUpdate, onDelete }: ExamSlotsT
         )}
       </div>
     </div>
-    <NotificationContainer />
+    <ConfirmationModal
+      isOpen={confirmationModal.isOpen}
+      title={confirmationModal.title}
+      message={confirmationModal.message}
+      onConfirm={confirmationModal.onConfirm}
+      onCancel={() => setConfirmationModal({ ...confirmationModal, isOpen: false })}
+      type={confirmationModal.type}
+    />
+    <MessageModal
+      isOpen={messageModal.isOpen}
+      title={messageModal.title}
+      message={messageModal.message}
+      onClose={() => setMessageModal({ ...messageModal, isOpen: false })}
+      type={messageModal.type}
+    />
     </Fragment>
   )
 }

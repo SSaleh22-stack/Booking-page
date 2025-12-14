@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import ManageBookingView from './ManageBookingView'
-import { useNotification } from '@/hooks/useNotification'
+import ConfirmationModal from './ConfirmationModal'
+import MessageModal from './MessageModal'
 
 interface BookingsTableProps {
   refreshTrigger?: number
@@ -29,7 +30,28 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null)
   const [selectedBookingIds, setSelectedBookingIds] = useState<Set<string>>(new Set())
   const [deletingBookings, setDeletingBookings] = useState(false)
-  const { showNotification, NotificationContainer } = useNotification()
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+    type?: 'danger' | 'warning' | 'info'
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
+  const [messageModal, setMessageModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    type?: 'success' | 'error' | 'info'
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+  })
 
   const fetchBookings = async () => {
     try {
@@ -90,32 +112,47 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
     return `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`
   }
 
-  const handleCancel = async (bookingId: string) => {
+  const handleCancel = (bookingId: string) => {
     if (cancellingBookingId) return // Prevent multiple clicks
     
-    if (!confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) {
-      return
-    }
+    setConfirmationModal({
+      isOpen: true,
+      title: 'تأكيد الإلغاء',
+      message: 'هل أنت متأكد من إلغاء هذا الحجز؟',
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmationModal({ ...confirmationModal, isOpen: false })
+        try {
+          setCancellingBookingId(bookingId)
+          const response = await fetch(`/api/bookings/admin/${bookingId}`, {
+            method: 'DELETE',
+          })
 
-    try {
-      setCancellingBookingId(bookingId)
-      const response = await fetch(`/api/bookings/admin/${bookingId}`, {
-        method: 'DELETE',
-      })
+          const data = await response.json()
 
-      const data = await response.json()
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to cancel booking')
+          }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to cancel booking')
-      }
-
-      showNotification('تم إلغاء الحجز بنجاح', 'success')
-      fetchBookings()
-    } catch (error: any) {
-      showNotification(error.message || 'فشل إلغاء الحجز', 'error')
-    } finally {
-      setCancellingBookingId(null)
-    }
+          setMessageModal({
+            isOpen: true,
+            title: 'نجح',
+            message: 'تم إلغاء الحجز بنجاح',
+            type: 'success',
+          })
+          fetchBookings()
+        } catch (error: any) {
+          setMessageModal({
+            isOpen: true,
+            title: 'خطأ',
+            message: error.message || 'فشل إلغاء الحجز',
+            type: 'error',
+          })
+        } finally {
+          setCancellingBookingId(null)
+        }
+      },
+    })
   }
 
   const handleRescheduleClick = (booking: any) => {
@@ -290,7 +327,12 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
     if (rescheduleLoading) return // Prevent multiple clicks
     
     if (!rescheduleBooking || !selectedSlot || !selectedStartTime || selectedRows.length === 0) {
-      showNotification('يرجى اختيار تاريخ جديد وفترة ووقت وصفوف', 'error')
+      setMessageModal({
+        isOpen: true,
+        title: 'تحذير',
+        message: 'يرجى اختيار تاريخ جديد وفترة ووقت وصفوف',
+        type: 'error',
+      })
       return
     }
 
@@ -313,11 +355,21 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
         throw new Error(data.error || 'Failed to reschedule booking')
       }
 
-      showNotification('تم إعادة جدولة الحجز بنجاح', 'success')
+      setMessageModal({
+        isOpen: true,
+        title: 'نجح',
+        message: 'تم إعادة جدولة الحجز بنجاح',
+        type: 'success',
+      })
       setRescheduleBooking(null)
       fetchBookings()
     } catch (error: any) {
-      showNotification(error.message || 'فشل إعادة جدولة الحجز', 'error')
+      setMessageModal({
+        isOpen: true,
+        title: 'خطأ',
+        message: error.message || 'فشل إعادة جدولة الحجز',
+        type: 'error',
+      })
     } finally {
       setRescheduleLoading(false)
     }
@@ -337,7 +389,12 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
       
       setManageBookingData(data)
     } catch (error: any) {
-      showNotification(error.message || 'Failed to load booking details', 'error')
+      setMessageModal({
+        isOpen: true,
+        title: 'خطأ',
+        message: error.message || 'Failed to load booking details',
+        type: 'error',
+      })
       setManageBooking(null)
     } finally {
       setManageBookingLoading(false)
@@ -364,42 +421,67 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
       // Refresh booking data
       await handleManageClick(manageBooking)
       fetchBookings()
-      showNotification('تم تحديث الحجز بنجاح!', 'success')
+      setMessageModal({
+        isOpen: true,
+        title: 'نجح',
+        message: 'تم تحديث الحجز بنجاح!',
+        type: 'success',
+      })
     } catch (error: any) {
-      showNotification(error.message || 'فشل تحديث الحجز', 'error')
+      setMessageModal({
+        isOpen: true,
+        title: 'خطأ',
+        message: error.message || 'فشل تحديث الحجز',
+        type: 'error',
+      })
     } finally {
       setUpdatingBookingId(null)
     }
   }
 
-  const handleManageCancel = async () => {
+  const handleManageCancel = () => {
     if (!manageBooking || cancellingBookingId) return
     
-    if (!confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) {
-      return
-    }
+    setConfirmationModal({
+      isOpen: true,
+      title: 'تأكيد الإلغاء',
+      message: 'هل أنت متأكد من إلغاء هذا الحجز؟',
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmationModal({ ...confirmationModal, isOpen: false })
+        try {
+          setCancellingBookingId(manageBooking.id)
+          const response = await fetch(`/api/bookings/manage/${manageBooking.manageToken}`, {
+            method: 'DELETE',
+          })
 
-    try {
-      setCancellingBookingId(manageBooking.id)
-      const response = await fetch(`/api/bookings/manage/${manageBooking.manageToken}`, {
-        method: 'DELETE',
-      })
+          const data = await response.json()
 
-      const data = await response.json()
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to cancel booking')
+          }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to cancel booking')
-      }
-
-      showNotification('تم إلغاء الحجز بنجاح', 'success')
-      setManageBooking(null)
-      setManageBookingData(null)
-      fetchBookings()
-    } catch (error: any) {
-      showNotification(error.message || 'فشل إلغاء الحجز', 'error')
-    } finally {
-      setCancellingBookingId(null)
-    }
+          setMessageModal({
+            isOpen: true,
+            title: 'نجح',
+            message: 'تم إلغاء الحجز بنجاح',
+            type: 'success',
+          })
+          setManageBooking(null)
+          setManageBookingData(null)
+          fetchBookings()
+        } catch (error: any) {
+          setMessageModal({
+            isOpen: true,
+            title: 'خطأ',
+            message: error.message || 'فشل إلغاء الحجز',
+            type: 'error',
+          })
+        } finally {
+          setCancellingBookingId(null)
+        }
+      },
+    })
   }
 
   const handleSelectAll = (checked: boolean) => {
@@ -420,9 +502,14 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
     setSelectedBookingIds(newSelected)
   }
 
-  const handleBulkDelete = async (sendEmail: boolean) => {
+  const handleBulkDelete = (sendEmail: boolean) => {
     if (selectedBookingIds.size === 0) {
-      showNotification('يرجى اختيار حجوزات للحذف', 'error')
+      setMessageModal({
+        isOpen: true,
+        title: 'تحذير',
+        message: 'يرجى اختيار حجوزات للحذف',
+        type: 'error',
+      })
       return
     }
 
@@ -430,39 +517,54 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
       ? `هل أنت متأكد من حذف ${selectedBookingIds.size} حجز بشكل دائم وإرسال بريد إلكتروني للمستخدمين؟`
       : `هل أنت متأكد من حذف ${selectedBookingIds.size} حجز بشكل دائم بدون إرسال بريد إلكتروني؟`
 
-    if (!confirm(confirmMessage)) {
-      return
-    }
+    setConfirmationModal({
+      isOpen: true,
+      title: 'تأكيد الحذف',
+      message: confirmMessage,
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmationModal({ ...confirmationModal, isOpen: false })
+        try {
+          setDeletingBookings(true)
+          const response = await fetch('/api/bookings/admin/bulk-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ids: Array.from(selectedBookingIds),
+              sendEmail,
+            }),
+          })
 
-    try {
-      setDeletingBookings(true)
-      const response = await fetch('/api/bookings/admin/bulk-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ids: Array.from(selectedBookingIds),
-          sendEmail,
-        }),
-      })
+          const data = await response.json()
 
-      const data = await response.json()
+          if (!response.ok) {
+            throw new Error(data.error || 'فشل حذف الحجوزات')
+          }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'فشل حذف الحجوزات')
-      }
+          const message = sendEmail
+            ? `تم حذف ${data.deletedCount} حجز بشكل دائم. تم إرسال ${data.emailsSent} بريد إلكتروني${data.emailsFailed > 0 ? ` (فشل ${data.emailsFailed})` : ''}`
+            : `تم حذف ${data.deletedCount} حجز بشكل دائم`
 
-      const message = sendEmail
-        ? `تم حذف ${data.deletedCount} حجز بشكل دائم. تم إرسال ${data.emailsSent} بريد إلكتروني${data.emailsFailed > 0 ? ` (فشل ${data.emailsFailed})` : ''}`
-        : `تم حذف ${data.deletedCount} حجز بشكل دائم`
-
-      showNotification(message, 'success')
-      setSelectedBookingIds(new Set())
-      fetchBookings()
-    } catch (error: any) {
-      showNotification(error.message || 'فشل حذف الحجوزات', 'error')
-    } finally {
-      setDeletingBookings(false)
-    }
+          setMessageModal({
+            isOpen: true,
+            title: 'نجح',
+            message,
+            type: 'success',
+          })
+          setSelectedBookingIds(new Set())
+          fetchBookings()
+        } catch (error: any) {
+          setMessageModal({
+            isOpen: true,
+            title: 'خطأ',
+            message: error.message || 'فشل حذف الحجوزات',
+            type: 'error',
+          })
+        } finally {
+          setDeletingBookings(false)
+        }
+      },
+    })
   }
 
   return (
@@ -982,7 +1084,21 @@ export default function BookingsTable({ refreshTrigger }: BookingsTableProps) {
         </div>
       )}
 
-      <NotificationContainer />
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={() => setConfirmationModal({ ...confirmationModal, isOpen: false })}
+        type={confirmationModal.type}
+      />
+      <MessageModal
+        isOpen={messageModal.isOpen}
+        title={messageModal.title}
+        message={messageModal.message}
+        onClose={() => setMessageModal({ ...messageModal, isOpen: false })}
+        type={messageModal.type}
+      />
     </div>
   )
 }
