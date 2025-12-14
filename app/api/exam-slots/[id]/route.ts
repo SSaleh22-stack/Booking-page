@@ -118,11 +118,88 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    // First, find the exam slot and its bookings
+    const examSlot = await prisma.examSlot.findUnique({
+      where: { id: params.id },
+      include: {
+        bookings: {
+          where: {
+            status: 'CONFIRMED', // Only cancel confirmed bookings
+          },
+        },
+      },
+    })
+
+    if (!examSlot) {
+      return NextResponse.json(
+        { error: 'فترة الامتحان غير موجودة' },
+        { status: 404 }
+      )
+    }
+
+    // Cancel all confirmed bookings associated with this slot
+    let emailsSent = 0
+    let emailsFailed = 0
+    
+    if (examSlot.bookings.length > 0) {
+      const { sendBookingCancellationEmail } = await import('@/lib/email')
+      
+      // Send cancellation emails first (before updating status)
+      for (const booking of examSlot.bookings) {
+        try {
+          const selectedRows = JSON.parse(booking.selectedRows) as number[]
+          await sendBookingCancellationEmail({
+            bookingId: booking.id,
+            bookingReference: booking.bookingReference || booking.id,
+            firstName: booking.firstName,
+            lastName: booking.lastName,
+            email: booking.email,
+            date: examSlot.date.toISOString().split('T')[0],
+            startTime: booking.bookingStartTime || examSlot.startTime,
+            durationMinutes: booking.bookingDurationMinutes || examSlot.durationMinutes || 60,
+            locationName: examSlot.locationName,
+            selectedRows,
+            manageToken: booking.manageToken,
+          })
+          emailsSent++
+          console.log(`Cancellation email sent successfully to ${booking.email} for booking ${booking.id}`)
+        } catch (emailError) {
+          emailsFailed++
+          console.error(`Failed to send cancellation email for booking ${booking.id} to ${booking.email}:`, emailError)
+          // Continue with other bookings even if one email fails
+        }
+      }
+
+      console.log(`Sent ${emailsSent} cancellation emails, ${emailsFailed} failed`)
+
+      // Update all bookings to CANCELLED status (they will remain in database)
+      // Set examSlotId to null so we can delete the slot
+      await prisma.booking.updateMany({
+        where: {
+          examSlotId: params.id,
+          status: 'CONFIRMED',
+        },
+        data: {
+          status: 'CANCELLED',
+          examSlotId: null, // Set to null so we can delete the slot
+        },
+      })
+    }
+
+    // Now delete the exam slot
+    // Bookings are already cancelled and examSlotId is set to null, so deletion is allowed
     await prisma.examSlot.delete({
       where: { id: params.id },
     })
 
-    return NextResponse.json({ message: 'تم حذف فترة الامتحان بنجاح' })
+    const cancelledCount = examSlot.bookings.length
+    
+    return NextResponse.json({
+      message: `تم حذف فترة الامتحان بنجاح${cancelledCount > 0 ? ` وتم إلغاء ${cancelledCount} حجز` : ''}${emailsSent > 0 ? ` (تم إرسال ${emailsSent} رسالة إلغاء)` : ''}${emailsFailed > 0 ? ` (فشل إرسال ${emailsFailed} رسالة)` : ''}`,
+      cancelledBookings: cancelledCount,
+      emailsSent,
+      emailsFailed,
+    })
   } catch (error) {
     if ((error as any).code === 'P2025') {
       return NextResponse.json(

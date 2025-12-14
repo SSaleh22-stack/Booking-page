@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import ExamSlotForm from './ExamSlotForm'
 import ExamSlotsTable from './ExamSlotsTable'
 import BookingsTable from './BookingsTable'
+import EmailSettings from './EmailSettings'
 
 interface AdminDashboardProps {
   onLogout?: () => void
@@ -13,7 +14,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [slots, setSlots] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [activeTab, setActiveTab] = useState<'slots' | 'bookings'>('slots')
+  const [activeTab, setActiveTab] = useState<'slots' | 'bookings' | 'settings'>('slots')
   const [refreshKey, setRefreshKey] = useState(0)
 
   const fetchSlots = async () => {
@@ -106,6 +107,16 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         >
           الحجوزات
         </button>
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`px-6 py-3 rounded-lg font-medium text-sm transition-all ${
+            activeTab === 'settings'
+              ? 'bg-blue-700 text-white shadow-md'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          إعدادات البريد
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -131,6 +142,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
       {activeTab === 'bookings' && (
         <BookingsTable refreshTrigger={refreshKey} />
+      )}
+
+      {activeTab === 'settings' && (
+        <EmailSettings />
       )}
     </div>
   )

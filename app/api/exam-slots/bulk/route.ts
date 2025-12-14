@@ -57,6 +57,79 @@ export async function DELETE(request: NextRequest) {
     const body = await request.json()
     const validated = bulkActionSchema.parse(body)
 
+    // First, find all exam slots and their confirmed bookings
+    const examSlots = await prisma.examSlot.findMany({
+      where: {
+        id: {
+          in: validated.ids,
+        },
+      },
+      include: {
+        bookings: {
+          where: {
+            status: 'CONFIRMED', // Only cancel confirmed bookings
+          },
+        },
+      },
+    })
+
+    // Cancel all confirmed bookings associated with these slots
+    let totalCancelledBookings = 0
+    let emailsSent = 0
+    let emailsFailed = 0
+    
+    if (examSlots.length > 0) {
+      const { sendBookingCancellationEmail } = await import('@/lib/email')
+      
+      // Send cancellation emails first (before updating status)
+      for (const slot of examSlots) {
+        for (const booking of slot.bookings) {
+          try {
+            const selectedRows = JSON.parse(booking.selectedRows) as number[]
+            await sendBookingCancellationEmail({
+              bookingId: booking.id,
+              bookingReference: booking.bookingReference || booking.id,
+              firstName: booking.firstName,
+              lastName: booking.lastName,
+              email: booking.email,
+              date: slot.date.toISOString().split('T')[0],
+              startTime: booking.bookingStartTime || slot.startTime,
+              durationMinutes: booking.bookingDurationMinutes || slot.durationMinutes || 60,
+              locationName: slot.locationName,
+              selectedRows,
+              manageToken: booking.manageToken,
+            })
+            emailsSent++
+            console.log(`Cancellation email sent successfully to ${booking.email} for booking ${booking.id}`)
+          } catch (emailError) {
+            emailsFailed++
+            console.error(`Failed to send cancellation email for booking ${booking.id} to ${booking.email}:`, emailError)
+            // Continue with other bookings even if one email fails
+          }
+        }
+      }
+
+      console.log(`Sent ${emailsSent} cancellation emails, ${emailsFailed} failed`)
+
+      // Update all bookings to CANCELLED status (they will remain in database)
+      // Set examSlotId to null so we can delete the slots
+      const updateResult = await prisma.booking.updateMany({
+        where: {
+          examSlotId: {
+            in: validated.ids,
+          },
+          status: 'CONFIRMED',
+        },
+        data: {
+          status: 'CANCELLED',
+          examSlotId: null, // Set to null so we can delete the slots
+        },
+      })
+
+      totalCancelledBookings = updateResult.count
+    }
+
+    // Now delete the exam slots
     const result = await prisma.examSlot.deleteMany({
       where: {
         id: {
@@ -66,20 +139,23 @@ export async function DELETE(request: NextRequest) {
     })
 
     return NextResponse.json({
-      message: `Deleted ${result.count} exam slot(s)`,
+      message: `تم حذف ${result.count} فترة امتحان${totalCancelledBookings > 0 ? ` وتم إلغاء ${totalCancelledBookings} حجز` : ''}${emailsSent > 0 ? ` (تم إرسال ${emailsSent} رسالة إلغاء)` : ''}${emailsFailed > 0 ? ` (فشل إرسال ${emailsFailed} رسالة)` : ''}`,
       deletedCount: result.count,
+      cancelledBookings: totalCancelledBookings,
+      emailsSent,
+      emailsFailed,
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: 'خطأ في التحقق', details: error.errors },
         { status: 400 }
       )
     }
 
     console.error('Error in bulk delete:', error)
     return NextResponse.json(
-      { error: 'Failed to delete exam slots' },
+      { error: 'فشل حذف فترات الامتحان' },
       { status: 500 }
     )
   }

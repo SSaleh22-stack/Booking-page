@@ -18,6 +18,27 @@ const transporter = nodemailer.createTransport({
   }),
 })
 
+// Helper function to get the correct app URL
+function getAppUrl(): string {
+  // Priority 1: NEXT_PUBLIC_APP_URL (explicitly set)
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL
+  }
+
+  // Priority 2: VERCEL_URL (automatically set by Vercel)
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+
+  // Priority 3: VERCEL_BRANCH_URL (for preview deployments)
+  if (process.env.VERCEL_BRANCH_URL) {
+    return `https://${process.env.VERCEL_BRANCH_URL}`
+  }
+
+  // Fallback: localhost for development
+  return 'http://localhost:3000'
+}
+
 export interface BookingEmailData {
   bookingId: string // Still needed for API URLs
   bookingReference: string
@@ -71,7 +92,7 @@ function formatDate(date: string): string {
 }
 
 export async function sendBookingConfirmationEmail(data: BookingEmailData) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = getAppUrl()
   const manageUrl = `${appUrl}/manage/${data.manageToken}`
   const icsUrl = `${appUrl}/api/bookings/${data.bookingId}/ics`
   const pdfUrl = `${appUrl}/api/bookings/${data.bookingId}/pdf`
@@ -84,17 +105,19 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData) {
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.8; color: #333; direction: rtl; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        * { direction: rtl; text-align: right; }
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.8; color: #333; direction: rtl; text-align: right; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; direction: rtl; text-align: right; }
         .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
-        .details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 4px; }
-        .detail-row { margin: 10px 0; display: flex; justify-content: space-between; }
-        .label { font-weight: bold; color: #6b7280; }
-        .value { color: #111827; font-weight: 500; }
-        .button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 10px 5px; }
+        .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; direction: rtl; text-align: right; }
+        .details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 4px; direction: rtl; text-align: right; }
+        .detail-row { margin: 10px 0; display: flex; justify-content: space-between; direction: rtl; }
+        .label { font-weight: bold; color: #6b7280; text-align: right; }
+        .value { color: #111827; font-weight: 500; text-align: right; }
+        .button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 10px 5px; direction: rtl; }
         .button:hover { background-color: #1d4ed8; }
         .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
+        p { text-align: right; direction: rtl; }
       </style>
     </head>
     <body>
@@ -189,7 +212,7 @@ export async function sendBookingConfirmationEmail(data: BookingEmailData) {
 }
 
 export async function sendBookingUpdateEmail(data: BookingEmailData) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = getAppUrl()
   const manageUrl = `${appUrl}/manage/${data.manageToken}`
   const icsUrl = `${appUrl}/api/bookings/${data.bookingId}/ics`
   const pdfUrl = `${appUrl}/api/bookings/${data.bookingId}/pdf`
@@ -202,17 +225,19 @@ export async function sendBookingUpdateEmail(data: BookingEmailData) {
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.8; color: #333; direction: rtl; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        * { direction: rtl; text-align: right; }
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.8; color: #333; direction: rtl; text-align: right; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; direction: rtl; text-align: right; }
         .header { background-color: #f59e0b; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
-        .details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 4px; }
-        .detail-row { margin: 10px 0; display: flex; justify-content: space-between; }
-        .label { font-weight: bold; color: #6b7280; }
-        .value { color: #111827; font-weight: 500; }
-        .button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 10px 5px; }
+        .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; direction: rtl; text-align: right; }
+        .details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 4px; direction: rtl; text-align: right; }
+        .detail-row { margin: 10px 0; display: flex; justify-content: space-between; direction: rtl; }
+        .label { font-weight: bold; color: #6b7280; text-align: right; }
+        .value { color: #111827; font-weight: 500; text-align: right; }
+        .button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 10px 5px; direction: rtl; }
         .button:hover { background-color: #1d4ed8; }
         .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
+        p { text-align: right; direction: rtl; }
       </style>
     </head>
     <body>
@@ -282,18 +307,29 @@ export async function sendBookingUpdateEmail(data: BookingEmailData) {
 }
 
 export async function sendBookingCancellationEmail(data: BookingEmailData) {
+  const appUrl = getAppUrl()
+  const endTime = calculateEndTime(data.startTime, data.durationMinutes)
+
   const html = `
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.8; color: #333; direction: rtl; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        * { direction: rtl; text-align: right; }
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.8; color: #333; direction: rtl; text-align: right; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; direction: rtl; text-align: right; }
         .header { background-color: #dc2626; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+        .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; direction: rtl; text-align: right; }
+        .details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 4px; direction: rtl; text-align: right; }
+        .detail-row { margin: 10px 0; display: flex; justify-content: space-between; direction: rtl; }
+        .label { font-weight: bold; color: #6b7280; text-align: right; }
+        .value { color: #111827; font-weight: 500; text-align: right; }
         .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
         .reference { font-family: monospace; font-size: 16px; font-weight: bold; color: #111827; }
+        p { text-align: right; direction: rtl; }
+        .button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 10px 5px; direction: rtl; }
+        .button:hover { background-color: #1d4ed8; }
       </style>
     </head>
     <body>
@@ -303,8 +339,40 @@ export async function sendBookingCancellationEmail(data: BookingEmailData) {
         </div>
         <div class="content">
           <p>عزيزي/عزيزتي ${data.firstName} ${data.lastName}،</p>
-          <p>تم إلغاء حجز قاعة الامتحان الخاص بك (مرجع الحجز: <span class="reference">${data.bookingReference}</span>).</p>
-          <p>إذا كنت بحاجة إلى حجز قاعة امتحان أخرى، يرجى زيارة صفحة الحجز.</p>
+          <p>تم تأكيد إلغاء حجز قاعة الامتحان الخاص بك. فيما يلي تفاصيل الحجز الملغي:</p>
+          
+          <div class="details">
+            <div class="detail-row">
+              <span class="label">مرجع الحجز:</span>
+              <span class="value" style="font-family: monospace; font-size: 16px;">${data.bookingReference}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">التاريخ:</span>
+              <span class="value">${formatDate(data.date)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">الوقت:</span>
+              <span class="value">${formatTime(data.startTime)} - ${endTime}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">المدة:</span>
+              <span class="value">${formatDuration(data.durationMinutes)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">الموقع:</span>
+              <span class="value">${data.locationName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">الصفوف:</span>
+              <span class="value">${data.selectedRows.sort((a, b) => a - b).join(', ')}</span>
+            </div>
+          </div>
+
+          <p style="margin-top: 20px;">إذا كنت بحاجة إلى حجز قاعة امتحان أخرى، يرجى زيارة صفحة الحجز.</p>
+          
+          <p style="margin-top: 20px; text-align: center;">
+            <a href="${appUrl}/book" class="button">حجز قاعة جديدة</a>
+          </p>
         </div>
         <div class="footer">
           <p>هذه رسالة بريد إلكتروني آلية. يرجى عدم الرد.</p>
@@ -323,6 +391,111 @@ export async function sendBookingCancellationEmail(data: BookingEmailData) {
     })
   } catch (error) {
     console.error('Error sending cancellation email:', error)
+    throw error
+  }
+}
+
+export async function sendBookingReminderEmail(data: BookingEmailData) {
+  const appUrl = getAppUrl()
+  const manageUrl = `${appUrl}/manage/${data.manageToken}`
+  const icsUrl = `${appUrl}/api/bookings/${data.bookingId}/ics`
+  const pdfUrl = `${appUrl}/api/bookings/${data.bookingId}/pdf`
+
+  const endTime = calculateEndTime(data.startTime, data.durationMinutes)
+
+  const html = `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="utf-8">
+      <style>
+        * { direction: rtl; text-align: right; }
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; line-height: 1.8; color: #333; direction: rtl; text-align: right; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; direction: rtl; text-align: right; }
+        .header { background-color: #059669; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; direction: rtl; text-align: right; }
+        .details { background-color: white; padding: 15px; margin: 15px 0; border-radius: 4px; direction: rtl; text-align: right; }
+        .detail-row { margin: 10px 0; display: flex; justify-content: space-between; direction: rtl; }
+        .label { font-weight: bold; color: #6b7280; text-align: right; }
+        .value { color: #111827; font-weight: 500; text-align: right; }
+        .button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 10px 5px; direction: rtl; }
+        .button:hover { background-color: #1d4ed8; }
+        .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
+        p { text-align: right; direction: rtl; }
+        .reminder-box { background-color: #fef3c7; border-right: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>تذكير: حجز قاعة الامتحان غداً</h1>
+        </div>
+        <div class="content">
+          <p>عزيزي/عزيزتي ${data.firstName} ${data.lastName}،</p>
+          
+          <div class="reminder-box">
+            <p style="font-weight: bold; margin: 0;">⏰ تذكير: حجزك سيكون غداً!</p>
+          </div>
+
+          <p>نود تذكيرك بحجز قاعة الامتحان الخاص بك. فيما يلي التفاصيل:</p>
+          
+          <div class="details">
+            <div class="detail-row">
+              <span class="label">مرجع الحجز:</span>
+              <span class="value" style="font-family: monospace; font-size: 16px;">${data.bookingReference}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">التاريخ:</span>
+              <span class="value">${formatDate(data.date)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">الوقت:</span>
+              <span class="value">${formatTime(data.startTime)} - ${endTime}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">المدة:</span>
+              <span class="value">${formatDuration(data.durationMinutes)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">الموقع:</span>
+              <span class="value">${data.locationName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">الصفوف:</span>
+              <span class="value">${data.selectedRows.sort((a, b) => a - b).join(', ')}</span>
+            </div>
+          </div>
+
+          <p style="margin-top: 20px; text-align: center;">
+            <a href="${manageUrl}" class="button">إدارة الحجز</a>
+          </p>
+
+          <p style="margin-top: 20px; text-align: center;">
+            <a href="${icsUrl}" class="button" style="background-color: #059669;">إضافة إلى التقويم</a>
+            <a href="${pdfUrl}" class="button" style="background-color: #dc2626;">تحميل PDF</a>
+          </p>
+
+          <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+            نتمنى لك التوفيق في الامتحان!
+          </p>
+        </div>
+        <div class="footer">
+          <p>هذه رسالة بريد إلكتروني آلية. يرجى عدم الرد.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || 'noreply@examroombooking.com',
+      to: data.email,
+      subject: 'تذكير: حجز قاعة الامتحان غداً - جامعة القصيم',
+      html,
+    })
+  } catch (error) {
+    console.error('Error sending reminder email:', error)
     throw error
   }
 }

@@ -34,8 +34,8 @@ model ExamSlot {
 
 model Booking {
   id                String   @id @default(uuid())
-  examSlotId        String
-  examSlot          ExamSlot @relation(fields: [examSlotId], references: [id], onDelete: Cascade)
+  examSlotId        String?
+  examSlot          ExamSlot? @relation(fields: [examSlotId], references: [id], onDelete: SetNull)
   bookingReference  String?  @unique // 12-character alphanumeric reference
   bookingStartTime  String?  // The actual start time chosen by doctor (HH:mm format) - optional for backward compatibility
   bookingDurationMinutes Int?  // The duration chosen by doctor (e.g., 60 or 120) - optional for backward compatibility
