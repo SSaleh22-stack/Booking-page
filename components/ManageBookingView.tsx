@@ -437,7 +437,7 @@ export default function ManageBookingView({
                         type="text"
                         value={formData.firstName}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                       />
                     </div>
                     <div>
@@ -448,7 +448,7 @@ export default function ManageBookingView({
                         type="text"
                         value={formData.lastName}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                       />
                     </div>
                   </div>
@@ -460,7 +460,7 @@ export default function ManageBookingView({
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                     />
                   </div>
                   <div>
@@ -471,7 +471,7 @@ export default function ManageBookingView({
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                     />
                   </div>
                   <div className="flex gap-4">
