@@ -665,7 +665,7 @@ export default function ExamSlotForm({ onSuccess, onCancel, initialData }: ExamS
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              المقاعد الافتراضية لكل صف (اختياري)
+              عدد المقاعد في كل صف (اختياري)
             </label>
             <input
               type="number"
@@ -673,7 +673,11 @@ export default function ExamSlotForm({ onSuccess, onCancel, initialData }: ExamS
               onChange={(e) => setFormData({ ...formData, defaultSeatsPerRow: e.target.value || '' })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               min="1"
+              placeholder="مثال: 30"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              سيتم عرض هذا العدد في صفحة اختيار الصفوف للمستخدمين
+            </p>
           </div>
 
           <div className="flex items-center">

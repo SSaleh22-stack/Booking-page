@@ -108,9 +108,17 @@ export default function RowSelection({ slot, selectedStartTime, selectedDuration
         <p className="text-gray-700 mb-2 font-medium">
           📍 الموقع: <span className="font-bold text-blue-900">{slot.locationName}</span>
         </p>
-        <p className="text-gray-700">
+        <p className="text-gray-700 mb-2">
           ✅ الصفوف المتاحة: <span className="font-bold text-green-700">{remainingRows}</span> من <span className="font-semibold">{totalRows}</span>
         </p>
+        {slot.defaultSeatsPerRow && (
+          <p className="text-gray-700">
+            💺 عدد المقاعد في كل صف: <span className="font-bold text-blue-900">{slot.defaultSeatsPerRow}</span> مقعد
+            {selectedRows.length > 0 && (
+              <span className="text-gray-900"> • إجمالي المقاعد المحددة: <span className="font-bold">{selectedRows.length * slot.defaultSeatsPerRow}</span> مقعد</span>
+            )}
+          </p>
+        )}
       </div>
 
       <div className="mb-6">
@@ -146,6 +154,9 @@ export default function RowSelection({ slot, selectedStartTime, selectedDuration
               </p>
               <p className="text-sm sm:text-base text-blue-700 mt-2 font-medium">
                 عدد الصفوف: {selectedRows.length} {selectedRows.length === 1 ? 'صف' : 'صفوف'}
+                {slot.defaultSeatsPerRow && (
+                  <span> • إجمالي المقاعد: <span className="font-bold">{selectedRows.length * slot.defaultSeatsPerRow}</span> مقعد</span>
+                )}
               </p>
             </>
           ) : (
