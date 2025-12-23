@@ -29,7 +29,7 @@ export default function Home() {
             نظام حجز قاعات الامتحانات
           </h1>
           <p className="text-xl text-gray-900 mb-8 max-w-2xl mx-auto">
-            احجز صفوف قاعات الامتحانات لامتحانات جامعة القصيم.
+            احجز صفوف قاعات الامتحانات لامتحانات مقر جامعة القصيم في الرس.
           </p>
           <Link
             href="/book"
@@ -109,4 +109,3 @@ export default function Home() {
     </div>
   );
 }
-
