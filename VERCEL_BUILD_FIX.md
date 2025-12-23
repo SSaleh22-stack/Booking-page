@@ -62,3 +62,6 @@ DATABASE_URL=postgresql://user:password@ep-xxxxx.region.aws.neon.tech/dbname?ssl
 4. انسخ **Connection String**
 5. تأكد من وجود `?sslmode=require` في النهاية
 
+
+
+

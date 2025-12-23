@@ -34,3 +34,6 @@ If you still encounter errors, check:
 2. The file is a valid TTF font file
 3. Your server has read permissions for the file
 
+
+
+

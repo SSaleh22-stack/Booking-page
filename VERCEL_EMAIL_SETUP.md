@@ -114,3 +114,6 @@ NEXT_PUBLIC_APP_URL=https://your-project.vercel.app
 - [Gmail App Passwords Guide](./GMAIL_SETUP.md)
 - [Email Setup Guide](./EMAIL_SETUP.md)
 
+
+
+
