@@ -4,8 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "حجز قاعات الامتحانات - جامعة القصيم",
-  description: "احجز صفوف قاعات الامتحانات لامتحانات جامعة القصيم",
+  title: "حجز قاعات الامتحانات - مقر جامعة القصيم في الرس",
+  description: "احجز صفوف قاعات الامتحانات لامتحانات مقر جامعة القصيم في الرس",
   icons: {
     icon: [
       {
@@ -38,7 +38,7 @@ export default function RootLayout({
                 <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg shadow-md group-hover:shadow-xl transition-all group-hover:scale-105 border-2 border-blue-300 overflow-hidden">
                   <Image
                     src="/logo.png"
-                    alt="جامعة القصيم"
+                    alt="مقر جامعة القصيم في الرس"
                     width={56}
                     height={56}
                     className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
@@ -47,7 +47,7 @@ export default function RootLayout({
                 </div>
                 <div className="flex flex-col">
                   <h1 className="text-white font-bold text-base sm:text-lg md:text-xl leading-tight">
-                    جامعة القصيم
+                    مقر جامعة القصيم في الرس
                   </h1>
                   <p className="text-blue-200 text-xs sm:text-sm hidden sm:block">
                     نظام حجز قاعات الامتحانات
@@ -82,7 +82,7 @@ export default function RootLayout({
           <div className="container mx-auto px-4 py-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
-                <h3 className="font-bold text-lg mb-3">جامعة القصيم</h3>
+                <h3 className="font-bold text-lg mb-3">مقر جامعة القصيم في الرس</h3>
                 <p className="text-blue-200 text-sm">
                   نظام حجز قاعات الامتحانات لأعضاء هيئة التدريس.
                 </p>
@@ -105,7 +105,7 @@ export default function RootLayout({
               </div>
             </div>
             <div className="border-t border-blue-800 mt-8 pt-6 text-center text-blue-200 text-sm">
-              <p>&copy; 2026 جامعة القصيم. جميع الحقوق محفوظة.</p>
+              <p>&copy; 2026 مقر جامعة القصيم في الرس. جميع الحقوق محفوظة.</p>
             </div>
           </div>
         </footer>
@@ -113,4 +113,3 @@ export default function RootLayout({
     </html>
   );
 }
-
