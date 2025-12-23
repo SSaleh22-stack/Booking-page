@@ -522,7 +522,7 @@ export async function GET(
       color: rgb(0.6, 0.6, 0.6),
     })
 
-    page.drawText('© 2026 Qassim University. All rights reserved.', {
+    page.drawText('© 2025 Qassim University. All rights reserved.', {
       x: 50,
       y: 5,
       size: 8,

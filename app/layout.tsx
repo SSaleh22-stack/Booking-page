@@ -105,7 +105,7 @@ export default function RootLayout({
               </div>
             </div>
             <div className="border-t border-blue-800 mt-8 pt-6 text-center text-blue-200 text-sm">
-              <p>&copy; 2026 مقر جامعة القصيم في الرس. جميع الحقوق محفوظة.</p>
+              <p>&copy; 2025 مقر جامعة القصيم في الرس. جميع الحقوق محفوظة.</p>
             </div>
           </div>
         </footer>
